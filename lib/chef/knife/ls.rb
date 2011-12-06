@@ -26,6 +26,8 @@ class Chef
               if config[:recursive]
                 results += list_child_dirs_recursive(result)
               end
+            elsif pattern.exact_path
+              STDERR.puts "#{format_path(result.path)}: No such file or directory"
             end
           end
         end
@@ -42,7 +44,7 @@ class Chef
           results.select { |result| result.dir? }.each do |result|
             puts ""
             puts "#{format_path(result.path)}:"
-            print_results(result.children.map { |result| result.name }.sort, "  ")
+            print_results(result.children.map { |result| result.name }.sort, "")
           end
         end
       end
@@ -50,7 +52,7 @@ class Chef
       def list_child_dirs_recursive(result)
         results = result.children.select { |child| child.dir? }.to_a
         results.each do |child|
-          results += list_recursive(child)
+          results += list_child_dirs_recursive(child)
         end
         results
       end
@@ -64,10 +66,10 @@ class Chef
 
         print_space = results.map { |result| result.length }.max + 2
         # TODO: tput cols is not cross platform
-        columns = Integer(`tput cols`)
+        columns = $stdout.isatty ? Integer(`tput cols`) : 0
         current_column = 0
         results.each do |result|
-          if current_column + print_space > columns
+          if current_column != 0 && current_column + print_space > columns
             puts ""
             current_column = 0
           end

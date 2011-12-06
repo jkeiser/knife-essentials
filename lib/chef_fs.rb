@@ -1,4 +1,4 @@
-require 'chef_fs/file_system/root_dir'
+require 'chef_fs/file_system/chef_server_root_dir'
 require 'chef/config'
 require 'chef/rest'
 
@@ -13,13 +13,9 @@ class ChefFS
     root_directory.list(pattern)
   end
 
-  def rest
-    Chef::REST.new(config[:chef_server_url])
-  end
-
   private
 
   def root_directory
-    @root_directory ||= ChefFS::FileSystem::RootDir.new(rest)
+    @root_directory ||= ChefFS::FileSystem::ChefServerRootDir.new(config)
   end
 end

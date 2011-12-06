@@ -14,11 +14,30 @@ class ChefFS
       end
 
       def api_path
-        "#{parent.api_path}/#{name}"
+        environment ? "#{parent.api_path}/#{name}/environments/#{environment}" : "#{parent.api_path}/#{name}"
       end
 
       def exists?
-        @exists ||= parent.children.any? { |child| child.name == name }
+        if @exists.nil?
+          @exists = parent.children.any? { |child| child.name == name }
+        end
+        @exists
+      end
+
+      def local_path
+        "#{path}.json"
+      end
+
+      def delete
+        begin
+          rest.delete_rest(api_path)
+        rescue Net::HTTPServerException
+          if $!.response.code == "404"
+            raise ChefFS::FileSystem::NotFoundException, $!
+          else
+            raise
+          end
+        end
       end
 
       def read
@@ -30,9 +49,15 @@ class ChefFS
           else
             raise
           end
-        rescue
-          puts $!.inspect
         end
+      end
+
+      def write(contents)
+        rest.put_rest(api_path, contents)
+      end
+
+      def environment
+        parent.environment
       end
 
       def rest

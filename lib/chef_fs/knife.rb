@@ -22,15 +22,19 @@ class ChefFS
           return "."
         elsif path[base_path.length] == "/"
           return path[base_path.length + 1, path.length - base_path.length - 1]
+        elsif base_path == "/" && path[0] == "/"
+          return path[1, path.length - 1]
         end
       end
       path
     end
 
+    def local_pattern(pattern)
+      chef_repo + File.join(base_path, pattern.pattern)
+    end
+
     def local_path(result)
-      path = File.join(chef_repo, result.path)
-      path += ".json" if !result.dir?
-      path
+      File.join(chef_repo, result.local_path)
     end
 
     def pattern_args
@@ -46,8 +50,12 @@ class ChefFS
     end
 
     def pwd_relative_to(dir)
-      pwd = File.absolute_path(Dir.pwd)
-      pwd[dir.length + 1, pwd.length - dir.length - 1] || ""
+      relative_to(File.absolute_path(Dir.pwd), dir)
+    end
+
+    def relative_to(path, to)
+      raise "Paths #{path} and #{to} do not have a common base!" if path.length < to.length || path[0,to.length] != to
+      path[to.length + 1, path.length - to.length - 1] || ""
     end
   end
 end

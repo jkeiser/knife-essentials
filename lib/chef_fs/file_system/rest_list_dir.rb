@@ -8,17 +8,30 @@ class ChefFS
     class RestListDir < BaseFSDir
       def initialize(name, parent, api_path = nil)
         super(name, parent)
-        @api_path = api_path || name
+        @api_path = api_path || "#{parent.api_path}/#{name}"
       end
 
       attr_reader :api_path
 
       def child(name)
-        RestListEntry.new(name, self)
+        result = @children.select { |child| child.name == name }.first if @children
+        result || RestListEntry.new(name, self)
       end
 
       def children
-        @children ||= rest.get_rest(api_path).map { |entry| RestListEntry.new(entry[0], self, true) }
+        begin
+          @children ||= rest.get_rest(api_path).map { |entry| RestListEntry.new(entry[0], self, true) }
+        rescue Net::HTTPServerException
+          if $!.response.code == "404"
+            raise ChefFS::FileSystem::NotFoundException, $!
+          else
+            raise
+          end
+        end
+      end
+
+      def environment
+        parent.environment
       end
 
       def rest

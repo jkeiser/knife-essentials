@@ -25,6 +25,10 @@ class ChefFS
         true
       end
 
+      def local_path
+        path
+      end
+
       def list(pattern)
         result = []
 
@@ -34,9 +38,8 @@ class ChefFS
         end
 
         if dir? && pattern.could_match_children?(path)
-
           # If it's possible that our children could match, descend in and add matches.
-          exact_child_name = path && pattern.exact_child_name_under(path)
+          exact_child_name = pattern.exact_child_name_under(path)
           if exact_child_name
             # If we've got an exact name, short-circuit the network by asking for a child with the given name.
             exact_child = child(exact_child_name)
@@ -52,6 +55,8 @@ class ChefFS
         end
         result
       end
+
+      # Abstract: read, write, delete
     end
   end
 end
