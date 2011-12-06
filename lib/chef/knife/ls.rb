@@ -16,12 +16,11 @@ class Chef
 
       def run
         patterns = name_args.length == 0 ? [""] : name_args
-        base_dir = "/" + pwd_relative_to(chef_repo)
 
         # Get the matches (recursively)
         results = []
-        patterns.each do |pattern|
-          chef_fs.list(ChefFS::FilePattern::relative_to(base_dir, pattern)).each do |result|
+        pattern_args_from(patterns).each do |pattern|
+          chef_fs.list(pattern).each do |result|
             if result.exists?
               results << result
               if config[:recursive]
@@ -42,7 +41,7 @@ class Chef
           print_result_paths results.select { |result| !result.dir? }
           results.select { |result| result.dir? }.each do |result|
             puts ""
-            puts "#{result.path}:"
+            puts "#{format_path(result.path)}:"
             print_results(result.children.map { |result| result.name }.sort, "  ")
           end
         end
@@ -57,7 +56,7 @@ class Chef
       end
 
       def print_result_paths(results, indent = "")
-        print_results(results.map { |result| result.path }, indent)
+        print_results(results.map { |result| format_path(result.path) }, indent)
       end
 
       def print_results(results, indent)
