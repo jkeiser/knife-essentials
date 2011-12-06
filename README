@@ -1,0 +1,14 @@
+SETUP
+-----
+1. mkdir -p ~/.chef/plugins/knife
+2. cp lib/chef/knife/* ~/.chef/plugins/knife
+3. export RUBYLIB=PATH_TO_CHEF_FS/lib
+
+USAGE
+-----
+From within your repo:
+knife ls
+knife ls roles
+knife ls nodes
+cd roles; knife ls
+knife ls */base
