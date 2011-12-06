@@ -30,6 +30,7 @@ class ChefFS
     def local_path(result)
       path = File.join(chef_repo, result.path)
       path += ".json" if !result.dir?
+      path
     end
 
     def pattern_args

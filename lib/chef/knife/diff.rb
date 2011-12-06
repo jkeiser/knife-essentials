@@ -24,20 +24,23 @@ class Chef
             puts "#{format_path(result.path)}: Directory is on the server but is not on the local filesystem"
           else
             begin
-              result.children.each { |child| diff_recursive(result) }
+              result.children.each { |child| diff_recursive(child) }
             rescue ChefFS::FileSystem::NotFoundException
-              STDERR.puts "#{format_path(result.path)}: Directory is on the local filesystem but is not on the server"
+              puts "#{format_path(result.path)}: Directory is on the local filesystem but is not on the server"
             end
           end
         else
           begin
-            puts format_path(result.path)
             value = result.read
             server_copy = Tempfile.new(result.name)
             begin
               server_tempfile = server_copy.path
               server_copy.write(Chef::JSONCompat.to_json_pretty(value).lines.map { |line| line.strip }.sort.join(""))
               server_copy.close()
+
+              if !File.exist?(local_path(result))
+                puts "#{format_path(result.path)}: File is on the server but is not on the local filesystem"
+              end
 
               local_value = IO.read(local_path(result))
               local_copy = Tempfile.new(result.name)
@@ -63,7 +66,9 @@ class Chef
 #            puts "#{format_path(result.path)}:"
 #            output(format_for_display(result.read))
           rescue ChefFS::FileSystem::NotFoundException
-            STDERR.puts "#{format_path(result.path)}: File is on the local filesystem but is not on the server" if pattern.exact_path
+            if File.exist?(local_path(result))
+              puts "#{format_path(result.path)}: File is on the local filesystem but is not on the server"
+            end
           end
         end
       end
