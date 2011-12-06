@@ -6,10 +6,7 @@ class Chef
       banner "cat [PATTERN1 ... PATTERNn]"
 
       def run
-        base_dir = "/" + pwd_relative_to(chef_repo)
-
         # Get the matches (recursively)
-        results = []
         pattern_args.each do |pattern|
           chef_fs.list(pattern).each do |result|
             if result.dir?

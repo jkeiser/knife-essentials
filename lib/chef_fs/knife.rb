@@ -27,6 +27,11 @@ class ChefFS
       path
     end
 
+    def local_path(result)
+      path = File.join(chef_repo, result.path)
+      path += ".json" if !result.dir?
+    end
+
     def pattern_args
       @pattern_args ||= pattern_args_from(name_args)
     end
