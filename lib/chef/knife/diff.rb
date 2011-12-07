@@ -2,6 +2,7 @@ require 'chef_fs/knife'
 require 'chef/json_compat'
 require 'tempfile'
 require 'fileutils'
+require 'digest/md5'
 
 class Chef
   class Knife
@@ -34,6 +35,10 @@ class Chef
         end
       end
 
+      def calc_checksum(value)
+        Digest::MD5.hexdigest(value.read)
+      end
+
       def diff(result, recurse_depth)
         local = local_fs.get(result.path)
         # Make sure local version exists.  We check the existence of the remote version by reading from it.
@@ -57,6 +62,17 @@ class Chef
           end
 
         else
+          # Short-circuit expensive comparison if a pre-calculated checksum is there
+          if result.respond_to?(:checksum)
+            if local.respond_to?(:checksum)
+              return if result.checksum == local.checksum
+            else
+              return if result.checksum == calc_checksum(local)
+            end
+          elsif local.respond_to?(:checksum)
+            return if calc_checksum(result) == local.checksum
+          end
+
           # If it's a file, diff the files
           begin
             value = result.read
@@ -65,12 +81,14 @@ class Chef
             return
           end
 
+          # Perform the actual compare (JSON-sensitive if JSON)
           local_value = local.read
           if result.content_type == :json || local.content_type == :json
             value = Chef::JSONCompat.from_json(value) if result.content_type == :text
             local_value = Chef::JSONCompat.from_json(local_value) if local.content_type == :text
             value = value.to_hash if value.respond_to? :to_hash
             local_value = local_value.to_hash if local_value.respond_to? :to_hash
+
             diff = diff_json(value, local_value, "")
             if diff.length > 0
               puts "#{format_path(result.path)}: Files are different"

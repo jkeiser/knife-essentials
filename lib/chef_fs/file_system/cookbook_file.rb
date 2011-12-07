@@ -11,6 +11,10 @@ class ChefFS
 
       attr_reader :file
 
+      def checksum
+        file[:checksum]
+      end
+
       def read
         old_sign_on_redirect = rest.sign_on_redirect
         rest.sign_on_redirect = false
