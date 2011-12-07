@@ -26,7 +26,7 @@ class ChefFS
 
     def exact_path
       return nil if has_double_star || exact_parts.any? { |part| part.nil? }
-      FilePattern::join_path(exact_parts)
+      FilePattern::join_path(*exact_parts)
     end
 
     def match?(path)

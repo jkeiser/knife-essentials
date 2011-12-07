@@ -27,15 +27,15 @@ class ChefFS
 
       # Retrieve an exact path
       def get(path)
-        raise "get only works on the root of a tree" if self.path != ""
+        return self if path.length == 0
+        return parent.get(path) if path[0] == "/" && self.path != ""
+        if path[0] == "/"
+          path = path[1,path.length-1]
+        end
 
         result = self
-        FilePattern::split_path(path).each_with_index do |part, index|
-          if index == 0
-            raise "Must be an absolute path" if part != ""
-          else
-            result = result.child(part)
-          end
+        FilePattern::split_path(path).each do |part|
+          result = result.child(part)
         end
         result
       end

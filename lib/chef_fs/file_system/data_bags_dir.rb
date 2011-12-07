@@ -16,7 +16,7 @@ class ChefFS
       end
 
       def children
-        @children ||= rest.get_rest(api_path).map { |entry| DataBagDir.new(entry[0], self, true) }
+        @children ||= rest.get_rest(api_path).keys.map { |entry| DataBagDir.new(entry, self, true) }
       end
     end
   end

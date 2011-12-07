@@ -1,6 +1,7 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/data_bags_dir'
+require 'chef_fs/file_system/cookbooks_dir'
 
 class ChefFS
   module FileSystem
@@ -25,7 +26,7 @@ class ChefFS
       def children
         @children ||= [
           RestListDir.new("clients", self),
-          RestListDir.new("cookbooks", self),
+          CookbooksDir.new(self),
           DataBagsDir.new(self),
           RestListDir.new("environments", self),
           RestListDir.new("nodes", self),

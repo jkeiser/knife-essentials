@@ -1,0 +1,29 @@
+require 'chef_fs/file_system/base_fs_object'
+
+class ChefFS
+  module FileSystem
+    class CookbookFile < BaseFSObject
+      def initialize(name, parent, file)
+        super(name, parent)
+        @exists = nil
+        @file = file
+      end
+
+      attr_reader :file
+
+      def read
+        old_sign_on_redirect = rest.sign_on_redirect
+        rest.sign_on_redirect = false
+        begin
+          rest.get_rest(file['url'])
+        ensure
+          rest.sign_on_redirect = true
+        end
+      end
+
+      def rest
+        parent.rest
+      end
+    end
+  end
+end
