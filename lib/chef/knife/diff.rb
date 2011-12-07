@@ -64,6 +64,8 @@ class Chef
           end
 
         else
+          # If it's a file, diff the files
+
           # Short-circuit expensive comparison if a pre-calculated checksum is there
           if result.respond_to?(:checksum)
             if local.respond_to?(:checksum)
@@ -75,16 +77,16 @@ class Chef
             return if calc_checksum(result) == local.checksum
           end
 
-          # If it's a file, diff the files
+          # Grab the result for diffage
           begin
             value = result.read
           rescue ChefFS::FileSystem::NotFoundException
             puts "#{format_path(result.path)}: File is on the local filesystem but is not on the server"
             return
           end
+          local_value = local.read
 
           # Perform the actual compare (JSON-sensitive if JSON)
-          local_value = local.read
           if result.content_type == :json || local.content_type == :json
             value = Chef::JSONCompat.from_json(value) if result.content_type == :text
             local_value = Chef::JSONCompat.from_json(local_value) if local.content_type == :text
