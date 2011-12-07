@@ -1,4 +1,5 @@
-require 'chef_fs'
+require 'chef_fs/file_system/chef_server_root_dir'
+require 'chef_fs/file_system/file_system_entry'
 require 'chef_fs/file_pattern'
 require 'chef/config'
 
@@ -9,7 +10,7 @@ class ChefFS
     end
 
     def chef_fs
-      @chef_fs ||= ChefFS.new
+      @chef_fs ||= ChefFS::FileSystem::ChefServerRootDir.new(Chef::Config)
     end
 
     def chef_repo
@@ -29,12 +30,8 @@ class ChefFS
       path
     end
 
-    def local_pattern(pattern)
-      chef_repo + File.join(base_path, pattern.pattern)
-    end
-
-    def local_path(result)
-      File.join(chef_repo, result.local_path)
+    def local_fs
+      @local_fs ||= ChefFS::FileSystem::FileSystemEntry.new("", nil, chef_repo)
     end
 
     def pattern_args
@@ -42,11 +39,7 @@ class ChefFS
     end
 
     def pattern_args_from(args)
-      args.map do |arg|
-        # Local file system globs can turn up ".json" extensions.  Strip them before we hit the server.
-        arg = arg[0,arg.length-5] if arg =~ /\.json$/
-        ChefFS::FilePattern::relative_to("/" + base_path, arg)
-      end.to_a
+      args.map { |arg| ChefFS::FilePattern::relative_to(base_path, arg) }.to_a
     end
 
     def pwd_relative_to(dir)

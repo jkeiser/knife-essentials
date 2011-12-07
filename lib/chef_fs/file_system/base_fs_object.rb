@@ -25,10 +25,22 @@ class ChefFS
         true
       end
 
-      def local_path
-        path
+      # Retrieve an exact path
+      def get(path)
+        raise "get only works on the root of a tree" if self.path != ""
+
+        result = self
+        FilePattern::split_path(path).each_with_index do |part, index|
+          if index == 0
+            raise "Must be an absolute path" if part != ""
+          else
+            result = result.child(part)
+          end
+        end
+        result
       end
 
+      # Get a list of all things under (and including) this entry that match the given pattern
       def list(pattern)
         result = []
 

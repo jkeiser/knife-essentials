@@ -19,88 +19,48 @@ class Chef
             diff_recursive(result)
           end
 
-          # Look for things on the filesystem that are not also on the server
-          puts local_pattern(pattern)
-          Dir.glob(local_pattern(pattern)).each do |file|
-            if !results.any? { |result| result.path == relative_to(file, chef_repo) }
-              if File.is_directory?(file)
-                puts "Directory #{file} exists on the local filesystem but is not on the server"
-              else
-                puts "File #{file} exists on the local filesystem but is not on the server"
-              end
+          # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
+          local_fs.list(pattern).each do |file|
+            if !results.any? { |result| result.path == file.path }
+              puts "#{file.dir? ? "Directory" : "File"} #{format_path(file.path)} exists on the local filesystem but is not on the server"
             end
           end
         end
       end
 
       def diff_recursive(result)
+        local = local_fs.get(result.path)
+        # Make sure local version exists.  We check the existence of the remote version by reading from it.
+        if !local.exists?
+          if result.exists?
+            puts "#{format_path(result.path)}: #{result.dir? ? "Directory" : "File"} is on the server but is not on the local filesystem"
+          end
+          return
+        end
+
         if result.dir?
-          # If it's a directory, check for existence and recurse
-          if !Dir.exist?(local_path(result))
-            puts "#{format_path(result.path)}: Directory is on the server but is not on the local filesystem"
-          else
-            begin
-              result.children.each { |child| diff_recursive(child) }
-            rescue ChefFS::FileSystem::NotFoundException
-              puts "#{format_path(result.path)}: Directory is on the local filesystem but is not on the server"
-            end
+          # If it's a directory, recurse to children
+          begin
+            result.children.each { |child| diff_recursive(child) }
+          rescue ChefFS::FileSystem::NotFoundException
+            puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
           end
         else
           # If it's a file, diff the files
           begin
             value = result.read
-            begin
-              local_value = Chef::JSONCompat.from_json(IO.read(local_path(result)))
-              diff = diff_json(value, local_value, "doc")
-              if diff.length > 0
-                puts "#{format_path(result.path)}: Files are different"
-                diff.each { |message| puts "  #{message}" }
-              end
-            rescue Errno::ENOENT # TODO Also catch case where file is a directory
-              puts "#{format_path(result.path)}: File is on the server but is not on the local filesystem"
-            end
           rescue ChefFS::FileSystem::NotFoundException
-            if File.exist?(local_path(result))
-              puts "#{format_path(result.path)}: File is on the local filesystem but is not on the server"
-            end
+            puts "#{format_path(result.path)}: File is on the local filesystem but is not on the server"
+            return
+          end
+
+          local_value = Chef::JSONCompat.from_json(local.read)
+          diff = diff_json(value, local_value, "")
+          if diff.length > 0
+            puts "#{format_path(result.path)}: Files are different"
+            diff.each { |message| puts "  #{message}" }
           end
         end
-      end
-
-      def saved_proc
-            server_copy = Tempfile.new(result.name)
-            begin
-              server_tempfile = server_copy.path
-              server_copy.write(Chef::JSONCompat.to_json_pretty(value).lines.map { |line| line.strip }.sort.join(""))
-              server_copy.close()
-
-              if !File.exist?(local_path(result))
-                puts "#{format_path(result.path)}: File is on the server but is not on the local filesystem"
-              end
-
-              local_value = IO.read(local_path(result))
-              local_copy = Tempfile.new(result.name)
-              begin
-                local_tempfile = local_copy.path
-                local_copy.write(local_value.lines.map { |line| line.strip }.sort.join(""))
-                local_copy.close()
-
-                # TODO use a gem for this
-                diff_result = `diff -u #{server_tempfile} #{local_tempfile}`
-                if diff_result != ''
-                  # TODO print the actual diff
-                  puts "#{format_path(result.path)}: File is different between the local filesystem and the server:"
-                  puts diff_result
-                end
-              ensure
-                local_copy.unlink()
-              end
-            ensure
-              server_copy.unlink()
-            end
-
-#            puts "#{format_path(result.path)}:"
-#            output(format_for_display(result.read))
       end
 
       def diff_json(server, local, name)
@@ -110,6 +70,8 @@ class Chef
         if local == nil
           return [ "#{name} exists locally but not on the server" ]
         end
+        server = server.to_hash if server.respond_to? :to_hash
+        local = local.to_hash if local.respond_to? :to_hash
         if server.is_a? Hash
           if !local.is_a? Hash
             return [ "#{name} has type #{server.class} on the server and #{local.class} locally" ]
@@ -117,7 +79,7 @@ class Chef
 
           results = []
           server.each_pair do |key, value|
-            new_name = "#{name}.#{key}"
+            new_name = name != "" ? "#{name}.#{key}" : key
             if !local.has_key?(key)
               results << "#{new_name} exists on the server but not locally"
             else
@@ -125,7 +87,7 @@ class Chef
             end
           end
           local.each_key do |key|
-            new_name = "#{name}.#{key}"
+            new_name = name != "" ? "#{name}.#{key}" : key
             if !server.has_key?(key)
               results << "#{new_name} exists locally but not on the server"
             end

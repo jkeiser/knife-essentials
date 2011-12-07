@@ -9,23 +9,18 @@ class ChefFS
   module FileSystem
     class RestListEntry < BaseFSObject
       def initialize(name, parent, exists = nil)
-        super(name, parent)
+        super("#{name}.json", parent)
         @exists = exists
+        @api_path = environment ? "#{parent.api_path}/#{name}/environments/#{environment}" : "#{parent.api_path}/#{name}"
       end
 
-      def api_path
-        environment ? "#{parent.api_path}/#{name}/environments/#{environment}" : "#{parent.api_path}/#{name}"
-      end
+      attr_reader :api_path
 
       def exists?
         if @exists.nil?
           @exists = parent.children.any? { |child| child.name == name }
         end
         @exists
-      end
-
-      def local_path
-        "#{path}.json"
       end
 
       def delete

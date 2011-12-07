@@ -38,7 +38,15 @@ class ChefFS
     end
 
     def self.join_path(*parts)
-      parts.join("/")
+      return "" if parts.length == 0
+      # Determine if it started with a slash
+      absolute = parts[0].length == 0 || parts[0].length > 0 && parts[0][0] =~ /^#{regexp_path_separator}/
+      # Remove leading and trailing slashes from each part so that the join will work (and the slash at the end will go away)
+      parts = parts.map { |part| part.gsub(/^\/|\/$/, "") }
+      # Don't join empty bits
+      result = parts.select { |part| part != "" }.join("/")
+      # Put the / back on
+      absolute ? "/#{result}" : result
     end
 
     def self.relative_to(dir, pattern)
