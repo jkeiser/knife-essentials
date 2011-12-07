@@ -8,6 +8,12 @@ class Chef
     class Diff < ChefFS::Knife
       banner "diff PATTERNS"
 
+      option :recurse,
+        :long => '--[no-]recurse',
+        :boolean => true,
+        :default => true,
+        :description => "List directories recursively."
+
       def run
         patterns = pattern_args_from(name_args.length > 0 ? name_args : [ "" ])
 
@@ -16,7 +22,7 @@ class Chef
           # Make sure everything on the server is also on the filesystem, and diff
           results = chef_fs.list(pattern)
           results.each do |result|
-            diff_recursive(result)
+            diff(result, config[:recurse] ? nil : 1)
           end
 
           # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
@@ -28,7 +34,7 @@ class Chef
         end
       end
 
-      def diff_recursive(result)
+      def diff(result, recurse_depth)
         local = local_fs.get(result.path)
         # Make sure local version exists.  We check the existence of the remote version by reading from it.
         if !local.exists?
@@ -40,9 +46,13 @@ class Chef
 
         if result.dir?
           # If it's a directory, recurse to children
-          begin
-            result.children.each { |child| diff_recursive(child) }
-          rescue ChefFS::FileSystem::NotFoundException
+          if recurse_depth != 0
+            begin
+              result.children.each { |child| diff(child, recurse_depth ? recurse_depth - 1 : nil) }
+            rescue ChefFS::FileSystem::NotFoundException
+              puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
+            end
+          elsif !result.exists?
             puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
           end
         else
