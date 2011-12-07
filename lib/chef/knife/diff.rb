@@ -23,7 +23,7 @@ class Chef
           # Make sure everything on the server is also on the filesystem, and diff
           results = chef_fs.list(pattern)
           results.each do |result|
-            diff(result, config[:recurse] ? nil : 1)
+            diff(result, config[:recurse] ? nil : 1, pattern)
           end
 
           # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
@@ -39,12 +39,14 @@ class Chef
         Digest::MD5.hexdigest(value.read)
       end
 
-      def diff(result, recurse_depth)
+      def diff(result, recurse_depth, pattern)
         local = local_fs.get(result.path)
         # Make sure local version exists.  We check the existence of the remote version by reading from it.
         if !local.exists?
           if result.exists?
             puts "#{format_path(result.path)}: #{result.dir? ? "Directory" : "File"} is on the server but is not on the local filesystem"
+          else
+            puts "#{format_path(result.path)}: No such file or directory" if pattern.exact_path
           end
           return
         end
@@ -53,7 +55,7 @@ class Chef
           # If it's a directory, recurse to children
           if recurse_depth != 0
             begin
-              result.children.each { |child| diff(child, recurse_depth ? recurse_depth - 1 : nil) }
+              result.children.each { |child| diff(child, recurse_depth ? recurse_depth - 1 : nil, pattern) }
             rescue ChefFS::FileSystem::NotFoundException
               puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
             end

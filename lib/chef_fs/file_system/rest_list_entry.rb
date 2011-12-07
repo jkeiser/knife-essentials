@@ -9,12 +9,17 @@ class ChefFS
   module FileSystem
     class RestListEntry < BaseFSObject
       def initialize(name, parent, exists = nil)
-        super("#{name}.json", parent)
+        super(name, parent)
         @exists = exists
-        @api_path = environment ? "#{parent.api_path}/#{name}/environments/#{environment}" : "#{parent.api_path}/#{name}"
       end
 
-      attr_reader :api_path
+      def api_path
+        if name.length < 5 && name[-5,5] != ".json"
+          raise "Invalid name #{name}: must include .json"
+        end
+        api_child_name = name[0,name.length-5]
+        environment ? "#{parent.api_path}/#{api_child_name}/environments/#{environment}" : "#{parent.api_path}/#{api_child_name}"
+      end
 
       def environment
         parent.environment

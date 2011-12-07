@@ -20,7 +20,7 @@ class ChefFS
 
       def children
         begin
-          @children ||= rest.get_rest(api_path).keys.map { |key| RestListEntry.new(key, self, true) }
+          @children ||= rest.get_rest(api_path).keys.map { |key| RestListEntry.new("#{key}.json", self, true) }
         rescue Net::HTTPServerException
           if $!.response.code == "404"
             raise ChefFS::FileSystem::NotFoundException, $!
