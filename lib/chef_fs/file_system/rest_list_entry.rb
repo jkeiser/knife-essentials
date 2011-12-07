@@ -16,6 +16,10 @@ class ChefFS
 
       attr_reader :api_path
 
+      def environment
+        parent.environment
+      end
+
       def exists?
         if @exists.nil?
           @exists = parent.children.any? { |child| child.name == name }
@@ -47,16 +51,16 @@ class ChefFS
         end
       end
 
-      def write(contents)
-        rest.put_rest(api_path, contents)
-      end
-
-      def environment
-        parent.environment
-      end
-
       def rest
         parent.rest
+      end
+
+      def content_type
+        :json
+      end
+
+      def write(contents)
+        rest.put_rest(api_path, contents)
       end
     end
   end

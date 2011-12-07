@@ -55,6 +55,7 @@ class Chef
           elsif !result.exists?
             puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
           end
+
         else
           # If it's a file, diff the files
           begin
@@ -64,11 +65,23 @@ class Chef
             return
           end
 
-          local_value = Chef::JSONCompat.from_json(local.read)
-          diff = diff_json(value, local_value, "")
-          if diff.length > 0
-            puts "#{format_path(result.path)}: Files are different"
-            diff.each { |message| puts "  #{message}" }
+          local_value = local.read
+          if result.content_type == :json || local.content_type == :json
+            value = Chef::JSONCompat.from_json(value) if result.content_type == :text
+            local_value = Chef::JSONCompat.from_json(local_value) if local.content_type == :text
+            value = value.to_hash if value.respond_to? :to_hash
+            local_value = local_value.to_hash if local_value.respond_to? :to_hash
+            diff = diff_json(value, local_value, "")
+            if diff.length > 0
+              puts "#{format_path(result.path)}: Files are different"
+              diff.each { |message| puts "  #{message}" }
+            end
+          else
+            diff = diff_text(result, local, value, local_value)
+            if diff != ''
+              puts "#{format_path(result.path)}: Files are different"
+              puts diff
+            end
           end
         end
       end
@@ -80,8 +93,6 @@ class Chef
         if local == nil
           return [ "#{name} exists locally but not on the server" ]
         end
-        server = server.to_hash if server.respond_to? :to_hash
-        local = local.to_hash if local.respond_to? :to_hash
         if server.is_a? Hash
           if !local.is_a? Hash
             return [ "#{name} has type #{server.class} on the server and #{local.class} locally" ]
@@ -125,6 +136,29 @@ class Chef
         end
 
         return []
+      end
+
+      def diff_text(server, local, server_value, local_value)
+        begin
+          server_file = Tempfile.new("server")
+          server_file.write(server_value)
+          server_file.close
+
+          begin
+            local_file = Tempfile.new("local")
+            local_file.write(local_value)
+            local_file.close
+
+            result = `diff -u #{server_file.path} #{local_file.path}`
+            result = result.gsub(/^--- #{server_file.path}/, "--- SERVER:#{server.path}")
+            result = result.gsub(/^\+\+\+ #{local_file.path}/, "--- LOCAL:#{local.path}")
+            result
+          ensure
+            local_file.close!
+          end
+        ensure
+          server_file.close!
+        end
       end
     end
   end

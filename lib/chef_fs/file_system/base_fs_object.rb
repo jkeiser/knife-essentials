@@ -68,6 +68,10 @@ class ChefFS
         result
       end
 
+      def content_type
+        :text
+      end
+
       # Abstract: read, write, delete
     end
   end
