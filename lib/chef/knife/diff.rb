@@ -27,9 +27,9 @@ class Chef
           end
 
           # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
-          local_fs.list(pattern).each do |file|
-            if !results.any? { |result| result.path == file.path }
-              puts "#{file.dir? ? "Directory" : "File"} #{format_path(file.path)} exists on the local filesystem but is not on the server"
+          local_fs.list(pattern).each do |local|
+            if !results.any? { |result| result.path == local.path }
+              puts "#{format_path(local.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
             end
           end
         end
@@ -56,6 +56,12 @@ class Chef
           if recurse_depth != 0
             begin
               result.children.each { |child| diff(child, recurse_depth ? recurse_depth - 1 : nil, pattern) }
+              # Check for children on the filesystem that are not on the server
+              local.children.each do |child|
+                if !result.children.any? { |result_child| result_child.path == child.path }
+                  puts "#{format_path(child.path)}: #{child.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
+                end
+              end
             rescue ChefFS::FileSystem::NotFoundException
               puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
             end
