@@ -19,13 +19,13 @@ class Chef
 
         # Get the matches (recursively)
         results = []
+        dir_results = []
         pattern_args_from(patterns).each do |pattern|
           chef_fs.list(pattern).each do |result|
-            if result.exists?
+            if result.dir? && !config[:bare_directories]
+              dir_results += add_dir_result(result)
+            elsif result.exists?
               results << result
-              if config[:recursive]
-                results += list_child_dirs_recursive(result)
-              end
             elsif pattern.exact_path
               STDERR.puts "#{format_path(result.path)}: No such file or directory"
             end
@@ -33,26 +33,44 @@ class Chef
         end
 
         results = results.sort_by { |result| result.path }
+        dir_results = dir_results.sort_by { |result| result[0].path }
 
-        # Print the matches
-        if config[:bare_directories]
-          print_result_paths results
-        elsif results.length == 1 && results[0].dir?
-          print_result_paths results[0].children
-        else
-          print_result_paths results.select { |result| !result.dir? }
-          results.select { |result| result.dir? }.each do |result|
-            puts ""
-            puts "#{format_path(result.path)}:"
-            print_results(result.children.map { |result| result.name }.sort, "")
-          end
+        if results.length == 0 && dir_results.length == 1
+          results = dir_results[0][1]
+          dir_results = []
+        end
+
+        print_result_paths results
+        dir_results.each do |result, children|
+          puts ""
+          puts "#{format_path(result.path)}:"
+          print_results(children.map { |result| result.name }.sort, "")
         end
       end
 
-      def list_child_dirs_recursive(result)
-        results = result.children.select { |child| child.dir? }.to_a
+      def add_dir_result(result)
+        begin
+          children = result.children.sort_by { |child| child.name }
+        rescue ChefFS::FileSystem::NotFoundException
+          STDERR.puts "#{format_path(result.path)}: No such file or directory"
+          return []
+        end
+
+        result = [ [ result, children ] ]
+        if config[:recursive]
+          children.each do |child|
+            if child.dir?
+              result += add_dir_result(child)
+            end
+          end
+        end
+        result
+      end
+
+      def list_dirs_recursive(children)
+        results = children.select { |child| child.dir? }.to_a
         results.each do |child|
-          results += list_child_dirs_recursive(child)
+          results += list_dirs_recursive(child.children)
         end
         results
       end
