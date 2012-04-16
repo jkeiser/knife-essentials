@@ -1,16 +1,27 @@
 == ChefFS
 
+= DESCRIPTION:
+
 This provides a library for working with a Chef server just like it's a file system.
 It also provides knife plugins that provide the same functionality.
 
-SETUP
------
-1. mkdir -p ~/.chef/plugins/knife
-2. cp lib/chef/knife/* ~/.chef/plugins/knife
-3. export RUBYLIB=PATH_TO_CHEF_FS/lib
+= INSTALLATION:
 
-USAGE
------
+This plugin is distributed as a Ruby Gem. To install it, run:
+
+    gem install knife-ec2
+
+Depending on your system's configuration, you may need to run this command with root privileges.
+
+= KNIFE PLUGINS
+
+To run the plugin functionality, install a version of Chef > 0.10.10:
+
+    gem install chef
+
+
+= USAGE
+
 From within your repo:
 knife ls
 knife ls roles
