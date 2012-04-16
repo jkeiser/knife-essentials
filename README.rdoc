@@ -1,3 +1,8 @@
+== ChefFS
+
+This provides a library for working with a Chef server just like it's a file system.
+It also provides knife plugins that provide the same functionality.
+
 SETUP
 -----
 1. mkdir -p ~/.chef/plugins/knife
