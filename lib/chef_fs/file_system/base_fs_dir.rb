@@ -1,7 +1,7 @@
 require 'chef_fs/file_system/base_fs_object'
 require 'chef_fs/file_system/nonexistent_fs_object'
 
-class ChefFS
+module ChefFS
   module FileSystem
     class BaseFSDir < BaseFSObject
       def initialize(name, parent)

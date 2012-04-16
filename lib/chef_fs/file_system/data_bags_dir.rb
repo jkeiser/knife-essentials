@@ -3,7 +3,7 @@ require 'chef_fs/file_system/data_bag_dir'
 
 # TODO: take environment into account
 
-class ChefFS
+module ChefFS
   module FileSystem
     class DataBagsDir < RestListDir
       def initialize(parent)

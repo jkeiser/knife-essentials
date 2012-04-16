@@ -1,7 +1,7 @@
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbook_dir'
 
-class ChefFS
+module ChefFS
   module FileSystem
     class CookbooksDir < RestListDir
       def initialize(parent)

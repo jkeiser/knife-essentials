@@ -1,7 +1,7 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_dir'
 
-class ChefFS
+module ChefFS
   module FileSystem
     class FileSystemEntry < BaseFSDir
       def initialize(name, parent, file_path = nil)

@@ -1,6 +1,6 @@
 require 'chef_fs/file_pattern'
 
-class ChefFS
+module ChefFS
   module FileSystem
     class BaseFSObject
       def initialize(name, parent)

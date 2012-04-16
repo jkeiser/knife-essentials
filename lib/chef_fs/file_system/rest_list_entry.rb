@@ -5,7 +5,7 @@ require 'chef/role'
 require 'chef/node'
 
 # TODO: take environment into account
-class ChefFS
+module ChefFS
   module FileSystem
     class RestListEntry < BaseFSObject
       def initialize(name, parent, exists = nil)

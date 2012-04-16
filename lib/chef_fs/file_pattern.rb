@@ -1,4 +1,4 @@
-class ChefFS
+module ChefFS
   class FilePattern
     def initialize(pattern)
       @pattern = pattern

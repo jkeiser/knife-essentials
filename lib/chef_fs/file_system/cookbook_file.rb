@@ -1,6 +1,6 @@
 require 'chef_fs/file_system/base_fs_object'
 
-class ChefFS
+module ChefFS
   module FileSystem
     class CookbookFile < BaseFSObject
       def initialize(name, parent, file)

@@ -1,4 +1,4 @@
-class ChefFS
+module ChefFS
   module FileSystem
     class NotFoundException < Exception
       def initialize(other_exception)

@@ -3,7 +3,7 @@ require 'chef_fs/file_system/file_system_entry'
 require 'chef_fs/file_pattern'
 require 'chef/config'
 
-class ChefFS
+module ChefFS
   class Knife < Chef::Knife
     def base_path
       @base_path ||= "/" + pwd_relative_to(chef_repo)

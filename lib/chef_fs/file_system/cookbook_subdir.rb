@@ -2,7 +2,7 @@ require 'chef_fs/file_system/base_fs_dir'
 
 # TODO: take environment into account
 
-class ChefFS
+module ChefFS
   module FileSystem
     class CookbookSubdir < BaseFSDir
       def initialize(name, parent)

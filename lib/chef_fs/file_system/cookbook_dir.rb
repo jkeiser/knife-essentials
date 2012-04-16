@@ -3,7 +3,7 @@ require 'chef_fs/file_system/cookbook_subdir'
 require 'chef_fs/file_system/cookbook_file'
 require 'chef/cookbook_version'
 
-class ChefFS
+module ChefFS
   module FileSystem
     class CookbookDir < BaseFSDir
       def initialize(name, parent, versions = nil)
