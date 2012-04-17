@@ -1,3 +1,6 @@
+require 'chef_fs'
+require 'chef_fs/path_utils'
+
 module ChefFS
   class FilePattern
     def initialize(pattern)
@@ -7,7 +10,7 @@ module ChefFS
     attr_reader :pattern
 
     def could_match_children?(path)
-      path_parts = FilePattern::split_path(path)
+      path_parts = ChefFS::PathUtils::split(path)
       # If the pattern is shorter than the path (or same size), children will be larger than the pattern, and will not match.
       return false if regexp_parts.length <= path_parts.length && !has_double_star
       # If the path doesn't match up to this point, children won't match either.
@@ -19,14 +22,14 @@ module ChefFS
     end
 
     def exact_child_name_under(path)
-      dirs_in_path = FilePattern::split_path(path).length
+      dirs_in_path = ChefFS::PathUtils::split(path).length
       return nil if exact_parts.length <= dirs_in_path
       return exact_parts[dirs_in_path]
     end
 
     def exact_path
       return nil if has_double_star || exact_parts.any? { |part| part.nil? }
-      FilePattern::join_path(*exact_parts)
+      ChefFS::PathUtils::join(*exact_parts)
     end
 
     def match?(path)
@@ -37,26 +40,9 @@ module ChefFS
       pattern
     end
 
-    def self.join_path(*parts)
-      return "" if parts.length == 0
-      # Determine if it started with a slash
-      absolute = parts[0].length == 0 || parts[0].length > 0 && parts[0][0] =~ /^#{regexp_path_separator}/
-      # Remove leading and trailing slashes from each part so that the join will work (and the slash at the end will go away)
-      parts = parts.map { |part| part.gsub(/^\/|\/$/, "") }
-      # Don't join empty bits
-      result = parts.select { |part| part != "" }.join("/")
-      # Put the / back on
-      absolute ? "/#{result}" : result
-    end
-
     def self.relative_to(dir, pattern)
-      return FilePattern.new(pattern) if pattern =~ /^#{regexp_path_separator}/
-      FilePattern.new(join_path(dir, pattern))
-    end
-
-    # Empty string is still a path
-    def self.split_path(path)
-      path == "" ? [""] : path.split(Regexp.new(regexp_path_separator))
+      return FilePattern.new(pattern) if pattern =~ /^#{ChefFS::PathUtils::regexp_path_separator}/
+      FilePattern.new(ChefFS::PathUtils::join(dir, pattern))
     end
 
   private
@@ -87,7 +73,7 @@ module ChefFS
         @regexp_parts = []
         @exact_parts = []
         @has_double_star = false
-        FilePattern::split_path(pattern).each do |part|
+        ChefFS::PathUtils::split(pattern).each do |part|
           regexp, exact, has_double_star = FilePattern::pattern_to_regexp(part)
           if has_double_star
             @has_double_star = true
@@ -110,20 +96,12 @@ module ChefFS
           end
         end
 
-        @regexp = Regexp.new("^#{full_regexp_parts.join(FilePattern::regexp_path_separator)}$")
+        @regexp = Regexp.new("^#{full_regexp_parts.join(ChefFS::PathUtils::regexp_path_separator)}$")
       end
     end
 
-    def self.windows?
-      false
-    end
-
-    def self.regexp_path_separator
-      windows? ? '[/\\]' : '/'
-    end
-
     def self.regexp_special_characters
-      if windows?
+      if ChefFS::windows?
         @regexp_special_characters ||= /(\*\*|\*|\?|[\*\?\.\|\(\)\[\]\{\}\+\\\\\^\$])/
       else
         # Unix also supports character regexes and backslashes

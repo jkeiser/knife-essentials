@@ -43,11 +43,11 @@ class Chef
             if new_file.dir?
               puts "Common subdirectories: #{old_file.path}"
             else
-              puts "File #{new_file.actual_path} is a directory while file #{new_file.actual_path} is a regular file"
+              puts "File #{new_file.path_for_printing} is a directory while file #{new_file.path_for_printing} is a regular file"
             end
           else
             if new_file.dir?
-              puts "File #{old_file.actual_path} is a regular file while file #{old_file.actual_path} is a directory"
+              puts "File #{old_file.path_for_printing} is a regular file while file #{old_file.path_for_printing} is a directory"
             else
               diff_files(old_file, new_file)
             end
@@ -56,18 +56,18 @@ class Chef
         # If only the old file exists ...
         elsif old_file.exists?
           if old_file.dir?
-            puts "Only in #{old_file.parent.actual_path}: #{old_file.name}"
+            puts "Only in #{old_file.parent.path_for_printing}: #{old_file.name}"
           else
-            diff = diff_text(old_file.actual_path, '/dev/null', old_file.read, '')
+            diff = diff_text(old_file.path_for_printing, '/dev/null', old_file.read, '')
             puts diff if diff
           end
 
         # If only the new file exists ...
         else
           if new_file.dir?
-            puts "Only in #{new_file.parent.actual_path}: #{new_file.name}"
+            puts "Only in #{new_file.parent.path_for_printing}: #{new_file.name}"
           else
-            diff = diff_text('/dev/null', new_file.actual_path, '', new_file.read)
+            diff = diff_text('/dev/null', new_file.path_for_printing, '', new_file.read)
             puts diff if diff
           end
         end
@@ -87,7 +87,7 @@ class Chef
 
         old_value = old_file.read
         new_value = new_file.read
-        diff = diff_text(old_file.actual_path, new_file.actual_path, old_value, new_value)
+        diff = diff_text(old_file.path_for_printing, new_file.path_for_printing, old_value, new_value)
         if diff != '' && context_aware_diff(old_file, new_file, old_value, new_value)
           puts diff
         end
@@ -126,7 +126,7 @@ class Chef
 
           diff = diff_json(old_file, new_file, old_value, new_value, "")
           #if diff.length > 0
-          #  puts "#{new_file.actual_path}: Files are different"
+          #  puts "#{new_file.path_for_printing}: Files are different"
           #  diff.each { |message| puts "  #{message}" }
           #end
           diff.length > 0
@@ -138,14 +138,14 @@ class Chef
       def diff_json(old_file, new_file, old_file_value, new_file_value, name)
         if old_file_value.is_a? Hash
           if !new_file_value.is_a? Hash
-            return [ "#{name} has type #{new_file_value.class} in #{new_file.actual_path} and #{old_file_value.class} in #{old_file.actual_path}" ]
+            return [ "#{name} has type #{new_file_value.class} in #{new_file.path_for_printing} and #{old_file_value.class} in #{old_file.path_for_printing}" ]
           end
 
           results = []
           new_file_value.each_pair do |key, value|
             new_name = name != "" ? "#{name}.#{key}" : key
             if !old_file_value.has_key?(key)
-              results << "#{new_name} exists in #{new_file.actual_path} but not in #{old_file.actual_path}"
+              results << "#{new_name} exists in #{new_file.path_for_printing} but not in #{old_file.path_for_printing}"
             else
               results += diff_json(old_file, new_file, old_file_value[key], new_file_value[key], new_name)
             end
@@ -153,7 +153,7 @@ class Chef
           old_file_value.each_key do |key|
             new_name = name != "" ? "#{name}.#{key}" : key
             if !new_file_value.has_key?(key)
-              results << "#{new_name} exists in #{old_file.actual_path} but not in #{new_file.actual_path}"
+              results << "#{new_name} exists in #{old_file.path_for_printing} but not in #{new_file.path_for_printing}"
             end
           end
           return results
@@ -161,12 +161,12 @@ class Chef
 
         if new_file_value.is_a? Array
           if !old_file_value.is_a? Array
-            return "#{name} has type #{new_file_value.class} in #{new_file.actual_path} and #{old_file_value.class} in #{old_file.actual_path}"
+            return "#{name} has type #{new_file_value.class} in #{new_file.path_for_printing} and #{old_file_value.class} in #{old_file.path_for_printing}"
           end
 
           results = []
           if old_file_value.length != new_file_value.length
-            results << "#{name} is length #{new_file_value.length} in #{new_file.actual_path}, and #{old_file_value.length} in #{old_file.actual_path}" 
+            results << "#{name} is length #{new_file_value.length} in #{new_file.path_for_printing}, and #{old_file_value.length} in #{old_file.path_for_printing}" 
           end
           0.upto([ new_file_value.length, old_file_value.length ].min - 1) do |i|
             results += diff_json(old_file, new_file, old_file_value[i], new_file_value[i], "#{name}[#{i}]")
@@ -175,7 +175,7 @@ class Chef
         end
 
         if new_file_value != old_file_value
-          return [ "#{name} is #{new_file_value.inspect} in #{new_file.actual_path} and #{old_file_value.inspect} in #{old_file.actual_path}" ]
+          return [ "#{name} is #{new_file_value.inspect} in #{new_file.path_for_printing} and #{old_file_value.inspect} in #{old_file.path_for_printing}" ]
         end
 
         return []

@@ -28,7 +28,7 @@ module ChefFS
         ""
       end
 
-      def actual_path
+      def path_for_printing
         @root_name
       end
 

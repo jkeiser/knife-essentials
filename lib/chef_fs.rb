@@ -3,4 +3,7 @@ require 'chef/config'
 require 'chef/rest'
 
 module ChefFS
+  def self.windows?
+    false
+  end
 end

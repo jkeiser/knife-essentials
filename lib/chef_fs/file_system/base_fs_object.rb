@@ -1,4 +1,4 @@
-require 'chef_fs/file_pattern'
+require 'chef_fs/path_utils'
 
 module ChefFS
   module FileSystem
@@ -7,7 +7,7 @@ module ChefFS
         @name = name
         @parent = parent
         if parent
-          @path = FilePattern::join_path(parent.path, name)
+          @path = ChefFS::PathUtils::join(parent.path, name)
         else
           @path = name
         end
@@ -21,9 +21,9 @@ module ChefFS
         parent ? parent.root : self
       end
 
-      def actual_path
+      def path_for_printing
         if parent
-          FilePattern::join_path(parent.actual_path, name)
+          ChefFS::PathUtils::join(parent.path_for_printing, name)
         else
           name
         end
@@ -46,7 +46,7 @@ module ChefFS
         end
 
         result = self
-        FilePattern::split_path(path).each do |part|
+        ChefFS::PathUtils::split(path).each do |part|
           result = result.child(part)
         end
         result
