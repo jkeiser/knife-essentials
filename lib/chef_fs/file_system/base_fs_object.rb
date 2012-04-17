@@ -17,6 +17,18 @@ module ChefFS
       attr_reader :parent
       attr_reader :path
 
+      def root
+        parent ? parent.root : self
+      end
+
+      def actual_path
+        if parent
+          FilePattern::join_path(parent.actual_path, name)
+        else
+          name
+        end
+      end
+
       def dir?
         false
       end

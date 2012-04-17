@@ -10,7 +10,7 @@ module ChefFS
     end
 
     def chef_fs
-      @chef_fs ||= ChefFS::FileSystem::ChefServerRootDir.new(Chef::Config)
+      @chef_fs ||= ChefFS::FileSystem::ChefServerRootDir.new("remote", Chef::Config)
     end
 
     def chef_repo

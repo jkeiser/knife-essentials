@@ -11,6 +11,10 @@ module ChefFS
 
       attr_reader :file_path
 
+      def actual_path
+        file_path
+      end
+
       def children
         @children ||= Dir.entries(file_path).select { |entry| entry[0] != "." }.map { |entry| FileSystemEntry.new(entry, self) }
       end

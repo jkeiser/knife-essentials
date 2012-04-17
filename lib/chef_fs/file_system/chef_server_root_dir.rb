@@ -6,12 +6,13 @@ require 'chef_fs/file_system/cookbooks_dir'
 module ChefFS
   module FileSystem
     class ChefServerRootDir < BaseFSDir
-      def initialize(config)
+      def initialize(root_name, config)
         super("", nil)
         @chef_server_url = config[:chef_server_url]
         @chef_username = config[:node_name]
         @chef_private_key = config[:client_key]
         @environment = config[:environment]
+        @root_name = root_name
       end
 
       attr_reader :chef_server_url
@@ -25,6 +26,10 @@ module ChefFS
 
       def api_path
         ""
+      end
+
+      def actual_path
+        @root_name
       end
 
       def children

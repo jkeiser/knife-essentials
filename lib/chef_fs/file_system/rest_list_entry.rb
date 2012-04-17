@@ -46,7 +46,7 @@ module ChefFS
 
       def read
         begin
-          rest.get_rest(api_path)
+          Chef::JSONCompat.to_json_pretty(rest.get_rest(api_path).to_hash)
         rescue Net::HTTPServerException
           if $!.response.code == "404"
             raise ChefFS::FileSystem::NotFoundException, $!

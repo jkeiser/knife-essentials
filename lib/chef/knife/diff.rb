@@ -20,173 +20,211 @@ class Chef
 
         # Get the matches (recursively)
         patterns.each do |pattern|
-          # Make sure everything on the server is also on the filesystem, and diff
-          results = chef_fs.list(pattern)
-          results.each do |result|
-            diff(result, config[:recurse] ? nil : 1, pattern)
+          found_result = false
+          common_leaves_from_pattern(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1) do |chef_leaf, local_leaf|
+            found_result = true
+            diff_leaves(chef_leaf, local_leaf)
           end
-
-          # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
-          local_fs.list(pattern).each do |local|
-            if !results.any? { |result| result.path == local.path }
-              puts "#{format_path(local.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
-            end
+          if !found_result && pattern.exact_path
+            puts "#{pattern}: No such file or directory on remote or local"
           end
         end
       end
 
       def calc_checksum(value)
-        Digest::MD5.hexdigest(value.read)
+        Digest::MD5.hexdigest(value)
       end
 
-      def diff(result, recurse_depth, pattern)
-        local = local_fs.get(result.path)
-        # Make sure local version exists.  We check the existence of the remote version by reading from it.
-        if !local.exists?
-          if result.exists?
-            puts "#{format_path(result.path)}: #{result.dir? ? "Directory" : "File"} is on the server but is not on the local filesystem"
-          else
-            puts "#{format_path(result.path)}: No such file or directory" if pattern.exact_path
-          end
-          return
-        end
-
-        if result.dir?
-          # If it's a directory, recurse to children
-          if recurse_depth != 0
-            begin
-              result.children.each { |child| diff(child, recurse_depth ? recurse_depth - 1 : nil, pattern) }
-              # Check for children on the filesystem that are not on the server
-              local.children.each do |child|
-                if !result.children.any? { |result_child| result_child.path == child.path }
-                  puts "#{format_path(child.path)}: #{child.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
-                end
-              end
-            rescue ChefFS::FileSystem::NotFoundException
-              puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
+      # Diff two known leaves (could be files or dirs)
+      def diff_leaves(old_file, new_file)
+        # If both files exist ...
+        if old_file.exists? && new_file.exists?
+          if old_file.dir?
+            if new_file.dir?
+              puts "Common subdirectories: #{old_file.path}"
+            else
+              puts "File #{new_file.actual_path} is a directory while file #{new_file.actual_path} is a regular file"
             end
-          elsif !result.exists?
-            puts "#{format_path(result.path)}: #{local.dir? ? "Directory" : "File"} is on the local filesystem but is not on the server"
+          else
+            if new_file.dir?
+              puts "File #{old_file.actual_path} is a regular file while file #{old_file.actual_path} is a directory"
+            else
+              diff_files(old_file, new_file)
+            end
           end
 
+        # If only the old file exists ...
+        elsif old_file.exists?
+          if old_file.dir?
+            puts "Only in #{old_file.parent.actual_path}: #{old_file.name}"
+          else
+            diff = diff_text(old_file.actual_path, '/dev/null', old_file.read, '')
+            puts diff if diff
+          end
+
+        # If only the new file exists ...
         else
-          # If it's a file, diff the files
-
-          # Short-circuit expensive comparison if a pre-calculated checksum is there
-          if result.respond_to?(:checksum)
-            if local.respond_to?(:checksum)
-              return if result.checksum == local.checksum
-            else
-              return if result.checksum == calc_checksum(local)
-            end
-          elsif local.respond_to?(:checksum)
-            return if calc_checksum(result) == local.checksum
-          end
-
-          # Grab the result for diffage
-          begin
-            value = result.read
-          rescue ChefFS::FileSystem::NotFoundException
-            puts "#{format_path(result.path)}: File is on the local filesystem but is not on the server"
-            return
-          end
-          local_value = local.read
-
-          # Perform the actual compare (JSON-sensitive if JSON)
-          if result.content_type == :json || local.content_type == :json
-            value = Chef::JSONCompat.from_json(value) if result.content_type == :text
-            local_value = Chef::JSONCompat.from_json(local_value) if local.content_type == :text
-            value = value.to_hash if value.respond_to? :to_hash
-            local_value = local_value.to_hash if local_value.respond_to? :to_hash
-
-            diff = diff_json(value, local_value, "")
-            if diff.length > 0
-              puts "#{format_path(result.path)}: Files are different"
-              diff.each { |message| puts "  #{message}" }
-            end
+          if new_file.dir?
+            puts "Only in #{new_file.parent.actual_path}: #{new_file.name}"
           else
-            diff = diff_text(result, local, value, local_value)
-            if diff != ''
-              puts "#{format_path(result.path)}: Files are different"
-              puts diff
-            end
+            diff = diff_text('/dev/null', new_file.actual_path, '', new_file.read)
+            puts diff if diff
           end
         end
       end
 
-      def diff_json(server, local, name)
-        if server == nil
-          return [ "#{name} exists on the server but not locally" ]
+      def diff_files(old_file, new_file)
+        # Short-circuit expensive comparison if a pre-calculated checksum is there
+        if new_file.respond_to?(:checksum)
+          if old_file.respond_to?(:checksum)
+            return if new_file.checksum == old_file.checksum
+          else
+            return if new_file.checksum == calc_checksum(old_file.read)
+          end
+        elsif old_file.respond_to?(:checksum)
+          return if calc_checksum(new_file.read) == old_file.checksum
         end
-        if local == nil
-          return [ "#{name} exists locally but not on the server" ]
+
+        old_value = old_file.read
+        new_value = new_file.read
+        diff = diff_text(old_file.actual_path, new_file.actual_path, old_value, new_value)
+        if diff != '' && context_aware_diff(old_file, new_file, old_value, new_value)
+          puts diff
         end
-        if server.is_a? Hash
-          if !local.is_a? Hash
-            return [ "#{name} has type #{server.class} on the server and #{local.class} locally" ]
+      end
+
+      def diff_text(old_path, new_path, old_value, new_value)
+        # Copy to tempfiles before diffing
+        # TODO don't copy things that are already in files!  Or find an in-memory diff algorithm
+        begin
+          new_tempfile = Tempfile.new("new")
+          new_tempfile.write(new_value)
+          new_tempfile.close
+
+          begin
+            old_tempfile = Tempfile.new("old")
+            old_tempfile.write(old_value)
+            old_tempfile.close
+
+            result = `diff -u #{old_tempfile.path} #{new_tempfile.path}`
+            result = result.gsub(/^--- #{old_tempfile.path}/, "--- #{old_path}")
+            result = result.gsub(/^\+\+\+ #{new_tempfile.path}/, "+++ #{new_path}")
+            result
+          ensure
+            old_tempfile.close!
+          end
+        ensure
+          new_tempfile.close!
+        end
+      end
+
+      def context_aware_diff(old_file, new_file, old_value, new_value)
+        # TODO handle errors in reading JSON
+        if old_file.content_type == :json || new_file.content_type == :json
+          new_value = Chef::JSONCompat.from_json(new_value).to_hash
+          old_value = Chef::JSONCompat.from_json(old_value).to_hash
+
+          diff = diff_json(old_file, new_file, old_value, new_value, "")
+          #if diff.length > 0
+          #  puts "#{new_file.actual_path}: Files are different"
+          #  diff.each { |message| puts "  #{message}" }
+          #end
+          diff.length > 0
+        else
+          true
+        end
+      end
+
+      def diff_json(old_file, new_file, old_file_value, new_file_value, name)
+        if old_file_value.is_a? Hash
+          if !new_file_value.is_a? Hash
+            return [ "#{name} has type #{new_file_value.class} in #{new_file.actual_path} and #{old_file_value.class} in #{old_file.actual_path}" ]
           end
 
           results = []
-          server.each_pair do |key, value|
+          new_file_value.each_pair do |key, value|
             new_name = name != "" ? "#{name}.#{key}" : key
-            if !local.has_key?(key)
-              results << "#{new_name} exists on the server but not locally"
+            if !old_file_value.has_key?(key)
+              results << "#{new_name} exists in #{new_file.actual_path} but not in #{old_file.actual_path}"
             else
-              results += diff_json(server[key], local[key], new_name)
+              results += diff_json(old_file, new_file, old_file_value[key], new_file_value[key], new_name)
             end
           end
-          local.each_key do |key|
+          old_file_value.each_key do |key|
             new_name = name != "" ? "#{name}.#{key}" : key
-            if !server.has_key?(key)
-              results << "#{new_name} exists locally but not on the server"
+            if !new_file_value.has_key?(key)
+              results << "#{new_name} exists in #{old_file.actual_path} but not in #{new_file.actual_path}"
             end
           end
           return results
         end
 
-        if server.is_a? Array
-          if !local.is_a? Array
-            return "#{name} has type #{server.class} on the server and #{local.class} locally"
+        if new_file_value.is_a? Array
+          if !old_file_value.is_a? Array
+            return "#{name} has type #{new_file_value.class} in #{new_file.actual_path} and #{old_file_value.class} in #{old_file.actual_path}"
           end
 
           results = []
-          if local.length != server.length
-            results << "#{name} is length #{server.length} on the server, and #{local.length} locally" 
+          if old_file_value.length != new_file_value.length
+            results << "#{name} is length #{new_file_value.length} in #{new_file.actual_path}, and #{old_file_value.length} in #{old_file.actual_path}" 
           end
-          0.upto([ server.length, local.length ].min - 1) do |i|
-            results += diff_json(server[i], local[i], "#{name}[#{i}]")
+          0.upto([ new_file_value.length, old_file_value.length ].min - 1) do |i|
+            results += diff_json(old_file, new_file, old_file_value[i], new_file_value[i], "#{name}[#{i}]")
           end
           return results
         end
 
-        if server != local
-          return [ "#{name} is #{server.inspect} on the server and #{local.inspect} locally" ]
+        if new_file_value != old_file_value
+          return [ "#{name} is #{new_file_value.inspect} in #{new_file.actual_path} and #{old_file_value.inspect} in #{old_file.actual_path}" ]
         end
 
         return []
       end
 
-      def diff_text(server, local, server_value, local_value)
-        begin
-          server_file = Tempfile.new("server")
-          server_file.write(server_value)
-          server_file.close
-
-          begin
-            local_file = Tempfile.new("local")
-            local_file.write(local_value)
-            local_file.close
-
-            result = `diff -u #{server_file.path} #{local_file.path}`
-            result = result.gsub(/^--- #{server_file.path}/, "--- SERVER:#{server.path}")
-            result = result.gsub(/^\+\+\+ #{local_file.path}/, "--- LOCAL:#{local.path}")
-            result
-          ensure
-            local_file.close!
+      def common_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
+        # Make sure everything on the server is also on the filesystem, and diff
+        a_root.list(pattern).each do |a|
+          if a.exists?
+            b = b_root.get(a.path)
+            common_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
+              yield [ a_leaf, b_leaf ]
+            end
           end
-        ensure
-          server_file.close!
         end
+
+        # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
+        b_root.list(pattern).each do |b|
+          if b.exists?
+            a = a_root.get(b.path)
+            if ! a.exists?
+              yield [ a, b ]
+            end
+          end
+        end
+      end
+
+      def common_leaves(a, b, recurse_depth)
+        # If they are directories, and we should recurse, do so (and do not yield them).
+        # If we have children, recurse into them instead of returning ourselves.
+        if recurse_depth != 0 && a.exists? && b.exists? && a.dir? && b.dir? && b.children.length
+          a.children.each do |a_child|
+            common_leaves(a_child, b.get(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
+              yield [ a_leaf, b_leaf ]
+            end
+          end
+
+          # Check b for children that aren't in a
+          b.children.each do |b_child|
+            a_child = a.get(b_child.path)
+            if !a_child.exists?
+              yield [ a_child, b_child ]
+            end
+          end
+          return
+        end
+
+        # Otherwise, these are the leaves we must diff
+        yield [a, b]
       end
     end
   end
