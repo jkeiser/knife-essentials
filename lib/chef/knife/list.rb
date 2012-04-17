@@ -2,8 +2,8 @@ require 'chef_fs/knife'
 
 class Chef
   class Knife
-    class Ls < ChefFS::Knife
-      banner "ls [-dR] [PATTERN1 ... PATTERNn]"
+    class List < ChefFS::Knife
+      banner "list [-dR] [PATTERN1 ... PATTERNn]"
 
       option :recursive,
         :short => '-R',

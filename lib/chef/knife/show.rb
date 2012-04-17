@@ -2,8 +2,8 @@ require 'chef_fs/knife'
 
 class Chef
   class Knife
-    class Cat < ChefFS::Knife
-      banner "cat [PATTERN1 ... PATTERNn]"
+    class Show < ChefFS::Knife
+      banner "show [PATTERN1 ... PATTERNn]"
 
       def run
         # Get the matches (recursively)
