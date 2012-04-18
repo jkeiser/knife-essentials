@@ -5,7 +5,6 @@ module ChefFS
     class CookbookFile < BaseFSObject
       def initialize(name, parent, file)
         super(name, parent)
-        @exists = nil
         @file = file
       end
 
