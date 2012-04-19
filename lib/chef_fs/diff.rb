@@ -1,4 +1,4 @@
-require 'chef_fs/knife'
+require 'chef_fs/file_system'
 require 'chef/json_compat'
 require 'tempfile'
 require 'fileutils'
@@ -158,9 +158,9 @@ module ChefFS
 
     def self.common_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
       # Make sure everything on the server is also on the filesystem, and diff
-      a_root.list(pattern).each do |a|
+      ChefFS::FileSystem.list(a_root, pattern).each do |a|
         if a.exists?
-          b = b_root.get(a.path)
+          b = ChefFS::FileSystem.get(b_root, a.path)
           common_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
             yield [ a_leaf, b_leaf ]
           end
@@ -168,9 +168,9 @@ module ChefFS
       end
 
       # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
-      b_root.list(pattern).each do |b|
+      ChefFS::FileSystem.list(b_root, pattern).each do |b|
         if b.exists?
-          a = a_root.get(b.path)
+          a = ChefFS::FileSystem.get(a_root, b.path)
           if ! a.exists?
             yield [ a, b ]
           end
@@ -183,14 +183,14 @@ module ChefFS
       # If we have children, recurse into them instead of returning ourselves.
       if recurse_depth != 0 && a.exists? && b.exists? && a.dir? && b.dir? && b.children.length
         a.children.each do |a_child|
-          common_leaves(a_child, b.get(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
+          common_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
             yield [ a_leaf, b_leaf ]
           end
         end
 
         # Check b for children that aren't in a
         b.children.each do |b_child|
-          a_child = a.get(b_child.path)
+          a_child = a.child(b_child.name)
           if !a_child.exists?
             yield [ a_child, b_child ]
           end
@@ -198,7 +198,7 @@ module ChefFS
         return
       end
 
-      # Otherwise, these are the leaves we must diff
+      # Otherwise, this is a leaf we must diff.
       yield [a, b]
     end
   end

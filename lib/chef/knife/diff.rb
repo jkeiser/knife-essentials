@@ -1,9 +1,5 @@
 require 'chef_fs/knife'
 require 'chef_fs/diff'
-require 'chef/json_compat'
-require 'tempfile'
-require 'fileutils'
-require 'digest/md5'
 
 class Chef
   class Knife
