@@ -1,8 +1,4 @@
-require 'chef_fs/knife'
-require 'chef/json_compat'
-require 'tempfile'
-require 'fileutils'
-require 'digest/md5'
+require 'chef_fs/path_utils'
 
 module ChefFS
   module FileSystem
@@ -38,9 +34,9 @@ module ChefFS
     end
 
     # Retrieve an exact path
-    def self.get(entry, path)
+    def self.get_path(entry, path)
       return entry if path.length == 0
-      return get(entry.parent, path) if path[0] == "/" && entry.path != ""
+      return get_path(entry.root, path) if path[0] == "/" && entry.root != entry
       if path[0] == "/"
         path = path[1,path.length-1]
       end
