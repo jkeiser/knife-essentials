@@ -8,57 +8,52 @@ require 'set'
 module ChefFS
   class Diff
     def self.calc_checksum(value)
+      return nil if value == nil
       Digest::MD5.hexdigest(value)
     end
 
     def self.diff_files(old_file, new_file)
-      # Short-circuit expensive comparison if a pre-calculated checksum is there
+      #
+      # Short-circuit expensive comparison (could be an extra network
+      # request) if a pre-calculated checksum is there
+      #
       if new_file.respond_to?(:checksum)
-        if old_file.respond_to?(:checksum)
-          return if new_file.checksum == old_file.checksum
-        else
-          return if new_file.checksum == calc_checksum(old_file.read)
+        new_checksum = new_file.checksum
+      end
+      if old_file.respond_to?(:checksum)
+        old_checksum = old_file.checksum
+      end
+
+      old_value = :not_retrieved
+      new_value = :not_retrieved
+
+      if old_checksum || new_checksum
+        if !old_checksum
+          old_value = read_file_value(old_file)
+          if old_value
+            old_checksum = calc_checksum(old_value)
+          end
         end
-      elsif old_file.respond_to?(:checksum)
-        return if calc_checksum(new_file.read) == old_file.checksum
-      end
-
-      old_value = old_file.read
-      new_value = new_file.read
-      diff = diff_text(old_file.path_for_printing, new_file.path_for_printing, old_value, new_value)
-      if diff == ''
-        return nil
-      end
-      if !context_aware_diff(old_file, new_file, old_value, new_value)
-        return nil
-      end
-
-      return diff
-    end
-
-    def self.diff_text(old_path, new_path, old_value, new_value)
-      # Copy to tempfiles before diffing
-      # TODO don't copy things that are already in files!  Or find an in-memory diff algorithm
-      begin
-        new_tempfile = Tempfile.new("new")
-        new_tempfile.write(new_value)
-        new_tempfile.close
-
-        begin
-          old_tempfile = Tempfile.new("old")
-          old_tempfile.write(old_value)
-          old_tempfile.close
-
-          result = `diff -u #{old_tempfile.path} #{new_tempfile.path}`
-          result = result.gsub(/^--- #{old_tempfile.path}/, "--- #{old_path}")
-          result = result.gsub(/^\+\+\+ #{new_tempfile.path}/, "+++ #{new_path}")
-          result
-        ensure
-          old_tempfile.close!
+        if !new_checksum
+          new_value = read_file_value(new_file)
+          if new_value
+            new_checksum = calc_checksum(new_value)
+          end
         end
-      ensure
-        new_tempfile.close!
+
+        # If the checksums are the same, they are the same.  Return.
+        return false if old_checksum == new_checksum
       end
+
+      #
+      # Grab the values if we don't have them already from calculating checksum
+      #
+      old_value = read_file_value(old_file) if old_value == :not_retrieved
+      new_value = read_file_value(new_file) if new_value == :not_retrieved
+
+      return false if old_value == new_value
+      return false if old_value && new_value && !context_aware_diff(old_file, new_file, old_value, new_value)
+      return [ true, old_value, new_value ]
     end
 
     def self.context_aware_diff(old_file, new_file, old_value, new_value)
@@ -147,7 +142,9 @@ module ChefFS
     def self.diffable_leaves(a, b, recurse_depth)
       # If we have children, recurse into them and diff the children instead of returning ourselves.
       if recurse_depth != 0 && a.dir? && b.dir? && a.children.length > 0 && b.children.length > 0
+        a_children_names = Set.new
         a.children.each do |a_child|
+          a_children_names << a_child.name
           diffable_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
             yield [ a_leaf, b_leaf ]
           end
@@ -155,8 +152,8 @@ module ChefFS
 
         # Check b for children that aren't in a
         b.children.each do |b_child|
-          if !a.children.any? { a_child.name == b_child.name }
-            yield [ a_child, b_child ]
+          if !a_children_names.include?(b_child.name)
+            yield [ a.child(name), b_child ]
           end
         end
         return
@@ -164,6 +161,16 @@ module ChefFS
 
       # Otherwise, this is a leaf we must diff.
       yield [a, b]
+    end
+
+    private
+
+    def self.read_file_value(file)
+      begin
+        return file.read
+      rescue ChefFS::FileSystem::NotFoundException
+        return nil
+      end
     end
   end
 end
