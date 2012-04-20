@@ -10,44 +10,6 @@ module ChefFS
       Digest::MD5.hexdigest(value)
     end
 
-    # Diff two known leaves (could be files or dirs)
-    def self.diff_leaves(old_file, new_file)
-      # If both files exist ...
-      if old_file.exists? && new_file.exists?
-        if old_file.dir?
-          if new_file.dir?
-            puts "Common subdirectories: #{old_file.path}"
-          else
-            puts "File #{new_file.path_for_printing} is a directory while file #{new_file.path_for_printing} is a regular file"
-          end
-        else
-          if new_file.dir?
-            puts "File #{old_file.path_for_printing} is a regular file while file #{old_file.path_for_printing} is a directory"
-          else
-            diff_files(old_file, new_file)
-          end
-        end
-
-      # If only the old file exists ...
-      elsif old_file.exists?
-        if old_file.dir?
-          puts "Only in #{old_file.parent.path_for_printing}: #{old_file.name}"
-        else
-          diff = diff_text(old_file.path_for_printing, '/dev/null', old_file.read, '')
-          puts diff if diff
-        end
-
-      # If only the new file exists ...
-      else
-        if new_file.dir?
-          puts "Only in #{new_file.parent.path_for_printing}: #{new_file.name}"
-        else
-          diff = diff_text('/dev/null', new_file.path_for_printing, '', new_file.read)
-          puts diff if diff
-        end
-      end
-    end
-
     def self.diff_files(old_file, new_file)
       # Short-circuit expensive comparison if a pre-calculated checksum is there
       if new_file.respond_to?(:checksum)
@@ -63,9 +25,14 @@ module ChefFS
       old_value = old_file.read
       new_value = new_file.read
       diff = diff_text(old_file.path_for_printing, new_file.path_for_printing, old_value, new_value)
-      if diff != '' && context_aware_diff(old_file, new_file, old_value, new_value)
-        puts diff
+      if diff == ''
+        return nil
       end
+      if !context_aware_diff(old_file, new_file, old_value, new_value)
+        return nil
+      end
+
+      return diff
     end
 
     def self.diff_text(old_path, new_path, old_value, new_value)
@@ -156,12 +123,12 @@ module ChefFS
       return []
     end
 
-    def self.common_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
+    def self.diffable_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
       # Make sure everything on the server is also on the filesystem, and diff
       ChefFS::FileSystem.list(a_root, pattern).each do |a|
         if a.exists?
-          b = ChefFS::FileSystem.get(b_root, a.path)
-          common_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
+          b = ChefFS::FileSystem.get_path(b_root, a.path)
+          diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
             yield [ a_leaf, b_leaf ]
           end
         end
@@ -170,7 +137,7 @@ module ChefFS
       # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
       ChefFS::FileSystem.list(b_root, pattern).each do |b|
         if b.exists?
-          a = ChefFS::FileSystem.get(a_root, b.path)
+          a = ChefFS::FileSystem.get_path(a_root, b.path)
           if ! a.exists?
             yield [ a, b ]
           end
@@ -178,12 +145,11 @@ module ChefFS
       end
     end
 
-    def self.common_leaves(a, b, recurse_depth)
-      # If they are directories, and we should recurse, do so (and do not yield them).
-      # If we have children, recurse into them instead of returning ourselves.
+    def self.diffable_leaves(a, b, recurse_depth)
+      # If we have children, recurse into them and diff the children instead of returning ourselves.
       if recurse_depth != 0 && a.exists? && b.exists? && a.dir? && b.dir? && b.children.length
         a.children.each do |a_child|
-          common_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
+          diffable_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
             yield [ a_leaf, b_leaf ]
           end
         end
