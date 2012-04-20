@@ -203,7 +203,7 @@ module ChefFS
               exact = nil
               regexp << part
             else
-              exact <tt>= part if !exact.nil?
+              exact += part if !exact.nil?
               regexp << "\\#{part}"
             end
           end
