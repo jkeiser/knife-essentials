@@ -14,6 +14,10 @@ module ChefFS
       def child(name)
         NonexistentFSObject.new(name, self)
       end
+
+      def read
+        raise ChefFS::FileSystem::NotFoundException, "Nonexistent object"
+      end
     end
   end
 end
