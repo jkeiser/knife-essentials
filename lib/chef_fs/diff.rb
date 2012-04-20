@@ -3,6 +3,7 @@ require 'chef/json_compat'
 require 'tempfile'
 require 'fileutils'
 require 'digest/md5'
+require 'set'
 
 module ChefFS
   class Diff
@@ -125,29 +126,27 @@ module ChefFS
 
     def self.diffable_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
       # Make sure everything on the server is also on the filesystem, and diff
+      found_paths = Set.new
       ChefFS::FileSystem.list(a_root, pattern).each do |a|
-        if a.exists?
-          b = ChefFS::FileSystem.get_path(b_root, a.path)
-          diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
-            yield [ a_leaf, b_leaf ]
-          end
+        found_paths << a.path
+        b = ChefFS::FileSystem.get_path(b_root, a.path)
+        diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
+          yield [ a_leaf, b_leaf ]
         end
       end
 
       # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
       ChefFS::FileSystem.list(b_root, pattern).each do |b|
-        if b.exists?
+        if !found_paths.include?(b.path)
           a = ChefFS::FileSystem.get_path(a_root, b.path)
-          if ! a.exists?
-            yield [ a, b ]
-          end
+          yield [ a, b ]
         end
       end
     end
 
     def self.diffable_leaves(a, b, recurse_depth)
       # If we have children, recurse into them and diff the children instead of returning ourselves.
-      if recurse_depth != 0 && a.exists? && b.exists? && a.dir? && b.dir? && b.children.length
+      if recurse_depth != 0 && a.dir? && b.dir? && a.children.length > 0 && b.children.length > 0
         a.children.each do |a_child|
           diffable_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
             yield [ a_leaf, b_leaf ]
@@ -156,8 +155,7 @@ module ChefFS
 
         # Check b for children that aren't in a
         b.children.each do |b_child|
-          a_child = a.child(b_child.name)
-          if !a_child.exists?
+          if !a.children.any? { a_child.name == b_child.name }
             yield [ a_child, b_child ]
           end
         end
