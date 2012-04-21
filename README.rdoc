@@ -2,29 +2,34 @@
 
 = DESCRIPTION:
 
-ChefFS provides a number of useful knife plugins following several principles:
+ChefFS provides a number of useful knife plugins following two principles:
 
-* One Verb to Rule Them All
+* Unified commands that work on everything
 
-Verbs like 'show', 'diff' and 'list' come first and apply to all objects in the
-system.  You want to edit or upload data_bags/users/jkeiser.json?  No need to
-remember the exact syntax of the command for data bag items; you wanted to edit.
-Just type knife edit data_bags/users/jkeiser.json.  Or even
-knife edit data_bags/users/*.json.  You don't need to remember what you're
-working with before you know what you want to do.  Type knife show data_bags
-or knife show roles or even knife show roles data_bags instead of
-knife role show and knife data_bag show.
+ChefFS thinks verbs come first.  There are only a few things you need to do with
+pretty much everything in the system: you upload them, download them, look at
+them, edit them, list them, diff them, and delete then.
 
-* Work With The Filesystem
+ChefFS provides a number of verb commands: +knife diff roles+ and +knife list roles+
+among them.  These commands work on all types of objects, as well.  You can type
++knife diff roles+, or +knife diff data_bags/users/jkeiser.json+.
 
-You already know the repository at your fingertips.  With ChefFS's knife
-commands, you don't need to relearn the nouns; just work with the files the
-way you see them.
+* Treat the Chef server is like your filesystem
 
-* Context-Sensitive
+ChefFS treats the Chef server like a mirror of a Chef repository.  Most of the
+stuff you do with the Chef Server is based on your local repository--a set of files
+in directories like +roles+, +data_bags+, +cookbooks+, etc.  The Chef Server has
+objects that match them--in fact, you can upload and download the files on your
+filesystem to change the file server.
 
-When you're in the roles directory, the system knows that's what you are
-working with.  Just type knife show base.json, not knife role show base.
+This makes learning the knife commands easy, and makes important commands like
+diff, upload and download extremely simple to do and easy to understand.
+
+* Take context into account
+
+When you're in the +roles+ directory, the system knows that's what you are
+working with.  Just type +knife show base.json+ and it will show you the base
+role from the server.  ChefFS knows.
 
 = INSTALLATION:
 
@@ -41,11 +46,11 @@ chef_fs installs a number of useful knife verbs, including:
     knife show [pattern2 pattern2 ...]
 
 These commands will list data on the server, exactly mirroring
-the data in a local Chef repository. So if you type ++knife diff data_bags/*s++,
+the data in a local Chef repository. So if you type +knife diff data_bags/*s+,
 it will diff all data bags that end with +s+.
 
 The commands are also context-sensitive. If you are in the ++roles++ directory
-and type ++knife show *base*++, you will get the current Chef server contents of all
+and type +knife show *base*+, you will get the current Chef server contents of all
 roles that contain the word +base+ in them.
 
 The Knife commands generally run off file patterns (globs you can type on the
@@ -63,7 +68,7 @@ To run the knife plugin functionality, install a version of Chef > 0.10.10:
 Since these patterns are also interpreted by the shell in Unix,
 you will need to backslash them if you want these knife commands to actually
 look at the server.  For example, if you want to list all data bags starting
-with 'a' on the server, you can do
+with "a" on the server, you can do
 
     knife list data_bags/a\*
 
@@ -75,14 +80,14 @@ Expands to the list of data bags on your local filesystem:
 
     knife list data_bags/aardvarks data_bags/anagrams
 
-But this means that if the server has a data bag named ++arp_tables++, you won't see it.
+But this means that if the server has a data bag named +arp_tables+, you won't see it.
 
 == knife diff
 
     knife diff [pattern1 pattern2 ...]
 
 Diffs objects on the server against files in the local repository.  Output is similar to
-++git diff++.
++git diff+.
 
 == knife list
 
@@ -94,5 +99,5 @@ Works just like 'ls', except it lists files on the server.
 
     knife show [pattern1 pattern2 ...]
 
-Works just like 'knife node show', 'knife role show', etc. except there is One Verb To Rule
+Works just like +knife node show+, +knife role show+, etc. except there is One Verb To Rule
 Them All.
