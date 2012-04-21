@@ -1,14 +1,14 @@
 require 'rubygems'
 require 'rake/gempackagetask'
-#require 'rspec/core/rake_task'
+require 'rspec/core/rake_task'
 require 'rdoc/task'
 
 task :default => :spec
 
-#desc "Run specs"
-#RSpec::Core::RakeTask.new(:spec) do |spec|
-#  spec.pattern = 'spec/**/*_spec.rb'
-#end
+desc "Run specs"
+RSpec::Core::RakeTask.new(:spec) do |spec|
+  spec.pattern = 'spec/**/*_spec.rb'
+end
 
 gem_spec = eval(File.read("chef_fs.gemspec"))
 
