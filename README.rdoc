@@ -6,15 +6,25 @@ ChefFS provides a number of useful knife plugins following several principles:
 
 * One Verb to Rule Them All
 
-Verbs like 'show', 'diff' and 'list' come first and apply to all objects in the system.  You want to edit or upload ++data_bags/users/jkeiser.json++?  No need to remember the exact syntax of the command for data bag items; you wanted to edit.  Just type ++knife edit data_bags/users/jkeiser.json++.  Or even ++knife edit data_bags/users/*.json++.  You don't need to remember what you're working with before you know what you want to do.  Type ++knife show data_bags++ or ++knife show roles++ or even ++knife show roles data_bags++ instead of ++knife role show++ and ++knife data_bag show++
+Verbs like 'show', 'diff' and 'list' come first and apply to all objects in the
+system.  You want to edit or upload data_bags/users/jkeiser.json?  No need to
+remember the exact syntax of the command for data bag items; you wanted to edit.
+Just type knife edit data_bags/users/jkeiser.json.  Or even
+knife edit data_bags/users/*.json.  You don't need to remember what you're
+working with before you know what you want to do.  Type knife show data_bags
+or knife show roles or even knife show roles data_bags instead of
+knife role show and knife data_bag show.
 
 * Work With The Filesystem
 
-You already know the repository at your fingertips.  With ChefFS's knife commands, you don't need to relearn the nouns; just work with the files the way you see them.
+You already know the repository at your fingertips.  With ChefFS's knife
+commands, you don't need to relearn the nouns; just work with the files the
+way you see them.
 
 * Context-Sensitive
 
-When you're in the ++roles++ directory, the system knows that's what you are working with.  Just type ++knife show base.json++, not ++knife role show base++.
+When you're in the roles directory, the system knows that's what you are
+working with.  Just type knife show base.json, not knife role show base.
 
 = INSTALLATION:
 
