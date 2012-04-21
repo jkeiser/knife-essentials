@@ -2,29 +2,87 @@
 
 = DESCRIPTION:
 
-This provides a library for working with a Chef server just like it's a file system.
-It also provides knife plugins that provide the same functionality.
+ChefFS provides a number of useful knife plugins following several principles:
+
+* One Verb to Rule Them All
+
+Verbs like 'show', 'diff' and 'list' come first and apply to all objects in the system.  You want to edit or upload ++data_bags/users/jkeiser.json++?  No need to remember the exact syntax of the command for data bag items; you wanted to edit.  Just type ++knife edit data_bags/users/jkeiser.json++.  Or even ++knife edit data_bags/users/*.json++.  You don't need to remember what you're working with before you know what you want to do.  Type ++knife show data_bags++ or ++knife show roles++ or even ++knife show roles data_bags++ instead of ++knife role show++ and ++knife data_bag show++
+
+* Work With The Filesystem
+
+You already know the repository at your fingertips.  With ChefFS's knife commands, you don't need to relearn the nouns; just work with the files the way you see them.
+
+* Context-Sensitive
+
+When you're in the ++roles++ directory, the system knows that's what you are working with.  Just type ++knife show base.json++, not ++knife role show base++.
 
 = INSTALLATION:
 
-This plugin is distributed as a Ruby Gem. To install it, run:
+This plugin builds a Ruby Gem (but has not yet been released to RubyGems).  To install it, run:
 
-    gem install knife-ec2
-
-Depending on your system's configuration, you may need to run this command with root privileges.
+    rake install
 
 = KNIFE PLUGINS
 
-To run the plugin functionality, install a version of Chef > 0.10.10:
+chef_fs installs a number of useful knife verbs, including:
+
+    knife diff [pattern1 pattern2 ...]
+    knife list [pattern1 pattern2 ...]
+    knife show [pattern2 pattern2 ...]
+
+These commands will list data on the server, exactly mirroring
+the data in a local Chef repository. So if you type ++knife diff data_bags/*s++,
+it will diff all data bags that end with +s+.
+
+The commands are also context-sensitive. If you are in the ++roles++ directory
+and type ++knife show *base*++, you will get the current Chef server contents of all
+roles that contain the word +base+ in them.
+
+The Knife commands generally run off file patterns (globs you can type on the
+command line).  Patterns can include *, ?, ** and character matchers like
+[a-z045].
+
+== Prerequisites
+
+To run the knife plugin functionality, install a version of Chef > 0.10.10:
 
     gem install chef
 
+== NOTE
 
-= USAGE
+Since these patterns are also interpreted by the shell in Unix,
+you will need to backslash them if you want these knife commands to actually
+look at the server.  For example, if you want to list all data bags starting
+with 'a' on the server, you can do
 
-From within your repo:
-knife ls
-knife ls roles
-knife ls nodes
-cd roles; knife ls
-knife ls */base
+    knife list data_bags/a\*
+
+If you do this instead, the shell will expand the pattern before passing it to knife:
+
+    knife list data_bags/a*
+
+Expands to the list of data bags on your local filesystem:
+
+    knife list data_bags/aardvarks data_bags/anagrams
+
+But this means that if the server has a data bag named ++arp_tables++, you won't see it.
+
+== knife diff
+
+    knife diff [pattern1 pattern2 ...]
+
+Diffs objects on the server against files in the local repository.  Output is similar to
+++git diff++.
+
+== knife list
+
+    knife list [pattern1 pattern2 ...]
+
+Works just like 'ls', except it lists files on the server.
+
+== knife show
+
+    knife show [pattern1 pattern2 ...]
+
+Works just like 'knife node show', 'knife role show', etc. except there is One Verb To Rule
+Them All.
