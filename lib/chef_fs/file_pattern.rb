@@ -45,6 +45,8 @@ module ChefFS
     #   abc/def.could_match_children?('x') == false
     #   a**z.could_match_children?('ab/cd') == true
     def could_match_children?(path)
+      return false if path == '' # Empty string is not a path
+
       argument_is_absolute = !!(path[0] =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
       return false if is_absolute != argument_is_absolute
       path = path[1,path.length-1] if argument_is_absolute
