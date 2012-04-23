@@ -25,7 +25,7 @@ describe ChefFS::FilePattern do
 
 	context 'with root pattern "/"' do
 		let(:pattern) { ChefFS::FilePattern.new('/') }
-		it 'match?' do
+		it 'match?', :focus => true do
 			pattern.match?('/').should be_true
 			pattern.match?('').should be_false
 			pattern.match?('a').should be_false
@@ -47,11 +47,11 @@ describe ChefFS::FilePattern do
 		let(:pattern) { ChefFS::FilePattern.new('abc') }
 		it 'match?' do
 			pattern.match?('abc').should be_true
-			pattern.match?('').should be_false
-			pattern.match?('/').should be_false
 			pattern.match?('a').should be_false
 			pattern.match?('abcd').should be_false
 			pattern.match?('/abc').should be_false
+			pattern.match?('').should be_false
+			pattern.match?('/').should be_false
 		end
 		it 'exact_path' do
 			pattern.exact_path.should == 'abc'
@@ -68,19 +68,19 @@ describe ChefFS::FilePattern do
 		it 'match?' do
 			pattern.match?('/abc').should be_true
 			pattern.match?('abc').should be_false
-			pattern.match?('').should be_false
-			pattern.match?('/').should be_false
 			pattern.match?('a').should be_false
 			pattern.match?('abcd').should be_false
+			pattern.match?('').should be_false
+			pattern.match?('/').should be_false
 		end
 		it 'exact_path' do
 			pattern.exact_path.should == '/abc'
 		end
 		it 'could_match_children?' do
-			pattern.could_match_children?('/').should be_true
-			pattern.could_match_children?('').should be_false
 			pattern.could_match_children?('abc').should be_false
 			pattern.could_match_children?('/abc').should be_false
+			pattern.could_match_children?('/').should be_true
+			pattern.could_match_children?('').should be_true
 		end
 		it 'exact_child_name_under' do
 			pattern.exact_child_name_under('/').should == 'abc'
@@ -92,6 +92,12 @@ describe ChefFS::FilePattern do
 		it 'handles trailing slashes' do
 			p('abc/').exact_path.should == 'abc'
 			p('abc/').match?('abc').should be_true
+			p('//').exact_path.should == '/'
+			p('//').match?('/').should be_true
+			p('/./').exact_path.should == '/'
+			p('/./').match?('/').should be_true
+			p('./').exact_path.should == ''
+			p('./').match?('').should be_true
 		end
 		it 'handles multiple slashes' do
 			p('abc//def').exact_path.should == 'abc/def'
@@ -102,6 +108,12 @@ describe ChefFS::FilePattern do
 		it 'handles dot' do
 			p('abc/./def').exact_path.should == 'abc/def'
 			p('abc/./def').match?('abc/def').should be_true
+			p('./abc/def').exact_path.should == 'abc/def'
+			p('./abc/def').match?('abc/def').should be_true
+			p('.').exact_path.should == ''
+			p('.').match?('').should be_true
+			p('/.').exact_path.should == '/'
+			p('/.').match?('/').should be_true
 		end
 		it 'handles dotdot' do
 			p('abc/../def').exact_path.should == 'def'
@@ -114,18 +126,24 @@ describe ChefFS::FilePattern do
 			p('/*/*/../def').match?('/abc/def').should be_true
 			p('/abc/def/../..').exact_path.should == '/'
 			p('/abc/def/../..').match?('/').should be_true
+			p('abc/../../def').exact_path.should == '../def'
+			p('abc/../../def').match?('../def').should be_true
 		end
-		it 'handles leading dotdot' do
-			p('../abc/def').exact_path.should == 'abc/def'
-			p('../abc/def').match?('abc/def').should be_true
-			p('abc/../../def').exact_path.should == 'def'
-			p('abc/../../def').match?('def').should be_true
+		it 'handles dotdot with double star' do
 			p('abc/**/../def').exact_path.should be_nil
 			p('abc/**/../def').match?('abc/def').should be_true
 			p('abc/**/../def').match?('abc/x/y/z/def').should be_true
 			p('abc/**/../def').match?('def').should be_false
+		end
+		it 'handles leading dotdot' do
+			p('../abc/def').exact_path.should == '../abc/def'
+			p('../abc/def').match?('../abc/def').should be_true
 			p('/../abc/def').exact_path.should == '/abc/def'
 			p('/../abc/def').match?('/abc/def').should be_true
+			p('..').exact_path.should == '..'
+			p('..').match?('..').should be_true
+			p('/..').exact_path.should == '/'
+			p('/..').match?('/').should be_true
 		end
 	end
 
