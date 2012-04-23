@@ -31,9 +31,8 @@ module ChefFS
       absolute ? "/#{result}" : result
     end
 
-    # Empty string is still a path
     def self.split(path)
-      path == "" ? [""] : path.split(Regexp.new(regexp_path_separator))
+      path.split(Regexp.new(regexp_path_separator))
     end
 
     def self.regexp_path_separator
