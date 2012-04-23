@@ -25,7 +25,7 @@ describe ChefFS::FilePattern do
 
 	context 'with root pattern "/"' do
 		let(:pattern) { ChefFS::FilePattern.new('/') }
-		it 'match?', :focus => true do
+		it 'match?' do
 			pattern.match?('/').should be_true
 			pattern.match?('').should be_false
 			pattern.match?('a').should be_false
@@ -80,7 +80,7 @@ describe ChefFS::FilePattern do
 			pattern.could_match_children?('abc').should be_false
 			pattern.could_match_children?('/abc').should be_false
 			pattern.could_match_children?('/').should be_true
-			pattern.could_match_children?('').should be_true
+			pattern.could_match_children?('').should be_false
 		end
 		it 'exact_child_name_under' do
 			pattern.exact_child_name_under('/').should == 'abc'
