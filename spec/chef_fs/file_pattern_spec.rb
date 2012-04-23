@@ -89,43 +89,61 @@ describe ChefFS::FilePattern do
 	end
 
 	context 'normalization tests' do
-		it 'handles trailing slashes' do
+		it 'handles trailing slashes', :focus => true do
+			p('abc/').normalized_pattern.should == 'abc'
 			p('abc/').exact_path.should == 'abc'
 			p('abc/').match?('abc').should be_true
+			p('//').normalized_pattern.should == '/'
 			p('//').exact_path.should == '/'
 			p('//').match?('/').should be_true
+			p('/./').normalized_pattern.should == '/'
 			p('/./').exact_path.should == '/'
 			p('/./').match?('/').should be_true
-			p('./').exact_path.should == ''
-			p('./').match?('').should be_true
 		end
 		it 'handles multiple slashes' do
+			p('abc//def').normalized_pattern.should == 'abc/def'
 			p('abc//def').exact_path.should == 'abc/def'
 			p('abc//def').match?('abc/def').should be_true
+			p('abc//').normalized_pattern.should == 'abc'
 			p('abc//').exact_path.should == 'abc'
 			p('abc//').match?('abc').should be_true
 		end
 		it 'handles dot' do
+			p('abc/./def').normalized_pattern.should == 'abc/def'
 			p('abc/./def').exact_path.should == 'abc/def'
 			p('abc/./def').match?('abc/def').should be_true
+			p('./abc/def').normalized_pattern.should == 'abc/def'
 			p('./abc/def').exact_path.should == 'abc/def'
 			p('./abc/def').match?('abc/def').should be_true
-			p('.').exact_path.should == ''
-			p('.').match?('').should be_true
+			p('/.').normalized_pattern.should == '/'
 			p('/.').exact_path.should == '/'
 			p('/.').match?('/').should be_true
 		end
+		it 'handles dot by itself', :pending => "decide what to do with dot by itself" do
+			p('.').normalized_pattern.should == '.'
+			p('.').exact_path.should == '.'
+			p('.').match?('.').should be_true
+			p('./').normalized_pattern.should == '.'
+			p('./').exact_path.should == '.'
+			p('./').match?('.').should be_true
+		end
 		it 'handles dotdot' do
+			p('abc/../def').normalized_pattern.should == 'def'
 			p('abc/../def').exact_path.should == 'def'
 			p('abc/../def').match?('def').should be_true
+			p('abc/def/../..').normalized_pattern.should == ''
 			p('abc/def/../..').exact_path.should == ''
 			p('abc/def/../..').match?('').should be_true
+			p('/*/../def').normalized_pattern.should == '/def'
 			p('/*/../def').exact_path.should == '/def'
 			p('/*/../def').match?('/def').should be_true
+			p('/*/*/../def').normalized_pattern.should == '/*/def'
 			p('/*/*/../def').exact_path.should be_nil
 			p('/*/*/../def').match?('/abc/def').should be_true
+			p('/abc/def/../..').normalized_pattern.should == '/'
 			p('/abc/def/../..').exact_path.should == '/'
 			p('/abc/def/../..').match?('/').should be_true
+			p('abc/../../def').normalized_pattern.should == '../def'
 			p('abc/../../def').exact_path.should == '../def'
 			p('abc/../../def').match?('../def').should be_true
 		end
