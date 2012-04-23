@@ -84,7 +84,57 @@ describe ChefFS::FilePattern do
 		end
 		it 'exact_child_name_under' do
 			pattern.exact_child_name_under('/').should == 'abc'
-			pattern.exact_child_name_under('').should == 'abc'
+		end
+	end
+
+	context 'with simple pattern "abc/def/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('abc/def/ghi') }
+		it 'match?' do
+			pattern.match?('abc/def/ghi').should be_true
+			pattern.match?('/abc/def/ghi').should be_false
+			pattern.match?('abc').should be_false
+			pattern.match?('abc/def').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should == 'abc/def/ghi'
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('abc').should be_true
+			pattern.could_match_children?('xyz').should be_false
+			pattern.could_match_children?('/abc').should be_false
+			pattern.could_match_children?('abc/def').should be_true
+			pattern.could_match_children?('abc/xyz').should be_false
+			pattern.could_match_children?('abc/def/ghi').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('abc').should == 'def'
+			pattern.exact_child_name_under('abc/def').should == 'ghi'
+		end
+	end
+
+	context 'with simple pattern "/abc/def/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc/def/ghi') }
+		it 'match?' do
+			pattern.match?('/abc/def/ghi').should be_true
+			pattern.match?('abc/def/ghi').should be_false
+			pattern.match?('/abc').should be_false
+			pattern.match?('/abc/def').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should == '/abc/def/ghi'
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/xyz').should be_false
+			pattern.could_match_children?('abc').should be_false
+			pattern.could_match_children?('/abc/def').should be_true
+			pattern.could_match_children?('/abc/xyz').should be_false
+			pattern.could_match_children?('/abc/def/ghi').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == 'abc'
+			pattern.exact_child_name_under('/abc').should == 'def'
+			pattern.exact_child_name_under('/abc/def').should == 'ghi'
 		end
 	end
 
