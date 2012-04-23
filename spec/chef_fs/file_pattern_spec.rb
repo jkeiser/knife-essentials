@@ -229,6 +229,44 @@ describe ChefFS::FilePattern do
 		end
 	end
 
+	context 'with star pattern "/abc/d[a-z][0-9]f/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc/d[a-z][0-9]f/ghi') }
+		it 'match?', :focus => true do
+			pattern.match?('/abc/de1f/ghi').should be_true
+			pattern.match?('/abc/deef/ghi').should be_false
+			pattern.match?('/abc/d11f/ghi').should be_false
+			pattern.match?('/abc/de11f/ghi').should be_false
+			pattern.match?('/abc/dee1f/ghi').should be_false
+			pattern.match?('/abc/df/ghi').should be_false
+			pattern.match?('/abc/d/ghi').should be_false
+			pattern.match?('/abc/f/ghi').should be_false
+			pattern.match?('/abc/ghi').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/xyz').should be_false
+			pattern.could_match_children?('abc').should be_false
+			pattern.could_match_children?('/abc/de1f').should be_true
+			pattern.could_match_children?('/abc/deef').should be_false
+			pattern.could_match_children?('/abc/d11f').should be_false
+			pattern.could_match_children?('/abc/de11f').should be_false
+			pattern.could_match_children?('/abc/dee1f').should be_false
+			pattern.could_match_children?('/abc/def').should be_false
+			pattern.could_match_children?('/abc/df').should be_false
+			pattern.could_match_children?('/abc/d').should be_false
+			pattern.could_match_children?('/abc/f').should be_false
+			pattern.could_match_children?('/abc/de1f/ghi').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == 'abc'
+			pattern.exact_child_name_under('/abc').should == nil
+			pattern.exact_child_name_under('/abc/de1f').should == 'ghi'
+		end
+	end
+
 	context 'normalization tests' do
 		it 'handles trailing slashes' do
 			p('abc/').normalized_pattern.should == 'abc'
