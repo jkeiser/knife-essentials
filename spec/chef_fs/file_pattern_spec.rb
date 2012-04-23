@@ -130,10 +130,14 @@ describe ChefFS::FilePattern do
 			p('abc/../../def').match?('../def').should be_true
 		end
 		it 'handles dotdot with double star' do
-			p('abc/**/../def').exact_path.should be_nil
-			p('abc/**/../def').match?('abc/def').should be_true
-			p('abc/**/../def').match?('abc/x/y/z/def').should be_true
-			p('abc/**/../def').match?('def').should be_false
+			p('abc**/def/../ghi').exact_path.should be_nil
+			p('abc**/def/../ghi').match?('abc/ghi').should be_true
+			p('abc**/def/../ghi').match?('abc/x/y/z/ghi').should be_true
+			p('abc**/def/../ghi').match?('ghi').should be_false
+		end
+		it 'raises error on dotdot with overlapping double star' do
+			lambda { ChefFS::FilePattern.new('abc/**/../def').exact_path }.should raise_error(ArgumentError)
+			lambda { ChefFS::FilePattern.new('abc/**/abc/../../def').exact_path }.should raise_error(ArgumentError)
 		end
 		it 'handles leading dotdot' do
 			p('../abc/def').exact_path.should == '../abc/def'

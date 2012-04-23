@@ -195,7 +195,7 @@ module ChefFS
 
           # Build up the regexp
           full_regexp_parts << regexp
-          normalized_parts << regexp
+          normalized_parts << part
           if !@has_double_star
             @regexp_parts << Regexp.new("^#{regexp}$")
             @exact_parts << exact
