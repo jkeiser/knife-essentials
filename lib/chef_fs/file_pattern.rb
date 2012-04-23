@@ -189,6 +189,7 @@ module ChefFS
                 @regexp_parts.pop
                 @exact_parts.pop
               end
+              next
             end
           end
 
