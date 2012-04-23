@@ -138,8 +138,99 @@ describe ChefFS::FilePattern do
 		end
 	end
 
+	context 'with star pattern "/abc/*/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc/*/ghi') }
+		it 'match?' do
+			pattern.match?('/abc/def/ghi').should be_true
+			pattern.match?('/abc/ghi').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/xyz').should be_false
+			pattern.could_match_children?('abc').should be_false
+			pattern.could_match_children?('/abc/def').should be_true
+			pattern.could_match_children?('/abc/xyz').should be_true
+			pattern.could_match_children?('/abc/def/ghi').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == 'abc'
+			pattern.exact_child_name_under('/abc').should == nil
+			pattern.exact_child_name_under('/abc/def').should == 'ghi'
+		end
+	end
+
+	context 'with star pattern "/abc/d*f/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc/d*f/ghi') }
+		it 'match?', :focus => true do
+			pattern.match?('/abc/def/ghi').should be_true
+			pattern.match?('/abc/dxf/ghi').should be_true
+			pattern.match?('/abc/df/ghi').should be_true
+			pattern.match?('/abc/dxyzf/ghi').should be_true
+			pattern.match?('/abc/d/ghi').should be_false
+			pattern.match?('/abc/f/ghi').should be_false
+			pattern.match?('/abc/ghi').should be_false
+			pattern.match?('/abc/xyz/ghi').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/xyz').should be_false
+			pattern.could_match_children?('abc').should be_false
+			pattern.could_match_children?('/abc/def').should be_true
+			pattern.could_match_children?('/abc/xyz').should be_false
+			pattern.could_match_children?('/abc/dxyzf').should be_true
+			pattern.could_match_children?('/abc/df').should be_true
+			pattern.could_match_children?('/abc/d').should be_false
+			pattern.could_match_children?('/abc/f').should be_false
+			pattern.could_match_children?('/abc/def/ghi').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == 'abc'
+			pattern.exact_child_name_under('/abc').should == nil
+			pattern.exact_child_name_under('/abc/def').should == 'ghi'
+		end
+	end
+
+	context 'with star pattern "/abc/d??f/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc/d??f/ghi') }
+		it 'match?', :focus => true do
+			pattern.match?('/abc/deef/ghi').should be_true
+			pattern.match?('/abc/deeef/ghi').should be_false
+			pattern.match?('/abc/def/ghi').should be_false
+			pattern.match?('/abc/df/ghi').should be_false
+			pattern.match?('/abc/d/ghi').should be_false
+			pattern.match?('/abc/f/ghi').should be_false
+			pattern.match?('/abc/ghi').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/xyz').should be_false
+			pattern.could_match_children?('abc').should be_false
+			pattern.could_match_children?('/abc/deef').should be_true
+			pattern.could_match_children?('/abc/deeef').should be_false
+			pattern.could_match_children?('/abc/def').should be_false
+			pattern.could_match_children?('/abc/df').should be_false
+			pattern.could_match_children?('/abc/d').should be_false
+			pattern.could_match_children?('/abc/f').should be_false
+			pattern.could_match_children?('/abc/deef/ghi').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == 'abc'
+			pattern.exact_child_name_under('/abc').should == nil
+			pattern.exact_child_name_under('/abc/deef').should == 'ghi'
+		end
+	end
+
 	context 'normalization tests' do
-		it 'handles trailing slashes', :focus => true do
+		it 'handles trailing slashes' do
 			p('abc/').normalized_pattern.should == 'abc'
 			p('abc/').exact_path.should == 'abc'
 			p('abc/').match?('abc').should be_true
