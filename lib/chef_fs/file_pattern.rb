@@ -157,7 +157,7 @@ module ChefFS
     def calculate
       if !@regexp
         @is_absolute = !!(@pattern =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
-        
+
         full_regexp_parts = []
         normalized_parts = []
         @regexp_parts = []
@@ -205,7 +205,8 @@ module ChefFS
         end
 
         @regexp = Regexp.new("^#{full_regexp_parts.join(ChefFS::PathUtils::regexp_path_separator)}$")
-        @normalized_pattern = normalized_parts.join(ChefFS::PathUtils::regexp_path_separator)
+        @normalized_pattern = ChefFS::PathUtils.join(*normalized_parts)
+        @normalized_pattern = ChefFS::PathUtils.join('', @normalized_pattern) if @is_absolute
       end
     end
 
