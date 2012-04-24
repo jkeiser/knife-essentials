@@ -138,7 +138,7 @@ describe ChefFS::FilePattern do
 		end
 	end
 
-	context 'with simple pattern "a\*\b"', :focus => true do
+	context 'with simple pattern "a\*\b"' do
 		let(:pattern) { ChefFS::FilePattern.new('a\*\b') }
 		it 'match?' do
 			pattern.match?('a*b').should be_true
@@ -280,6 +280,97 @@ describe ChefFS::FilePattern do
 			pattern.exact_child_name_under('/').should == 'abc'
 			pattern.exact_child_name_under('/abc').should == nil
 			pattern.exact_child_name_under('/abc/de1f').should == 'ghi'
+		end
+	end
+
+	context 'with star pattern "/abc/**/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc/**/ghi') }
+		it 'match?' do
+			pattern.match?('/abc/def/ghi').should be_true
+			pattern.match?('/abc/d/e/f/ghi').should be_true
+			pattern.match?('/abc/ghi').should be_false
+			pattern.match?('/abcdef/d/ghi').should be_false
+			pattern.match?('/abc/d/defghi').should be_false
+			pattern.match?('/xyz').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/abc/d').should be_true
+			pattern.could_match_children?('/abc/d/e').should be_true
+			pattern.could_match_children?('/abc/d/e/f').should be_true
+			pattern.could_match_children?('/abc/def/ghi').should be_true
+			pattern.could_match_children?('abc').should be_false
+			pattern.could_match_children?('/xyz').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == 'abc'
+			pattern.exact_child_name_under('/abc').should == nil
+			pattern.exact_child_name_under('/abc/def').should == nil
+		end
+	end
+
+	context 'with star pattern "/abc**/ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc**/ghi') }
+		it 'match?' do
+			pattern.match?('/abc/def/ghi').should be_true
+			pattern.match?('/abc/d/e/f/ghi').should be_true
+			pattern.match?('/abc/ghi').should be_true
+			pattern.match?('/abcdef/ghi').should be_true
+			pattern.match?('/abc/defghi').should be_false
+			pattern.match?('/xyz').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/abcdef').should be_true
+			pattern.could_match_children?('/abc/d/e').should be_true
+			pattern.could_match_children?('/abc/d/e/f').should be_true
+			pattern.could_match_children?('/abc/def/ghi').should be_true
+			pattern.could_match_children?('abc').should be_false
+		end
+		it 'could_match_children? /abc** returns false for /xyz' do
+			pending 'Make could_match_children? more rigorous' do
+				# At the moment, we return false for this, but in the end it would be nice to return true:
+				pattern.could_match_children?('/xyz').should be_false
+			end
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == nil
+			pattern.exact_child_name_under('/abc').should == nil
+			pattern.exact_child_name_under('/abc/def').should == nil
+		end
+	end
+
+	context 'with star pattern "/abc/**ghi"' do
+		let(:pattern) { ChefFS::FilePattern.new('/abc/**ghi') }
+		it 'match?' do
+			pattern.match?('/abc/def/ghi').should be_true
+			pattern.match?('/abc/d/e/f/ghi').should be_true
+			pattern.match?('/abc/ghi').should be_true
+			pattern.match?('/abcdef/ghi').should be_false
+			pattern.match?('/abc/defghi').should be_true
+			pattern.match?('/xyz').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('/abc').should be_true
+			pattern.could_match_children?('/abcdef').should be_false
+			pattern.could_match_children?('/abc/d/e').should be_true
+			pattern.could_match_children?('/abc/d/e/f').should be_true
+			pattern.could_match_children?('abc').should be_false
+			pattern.could_match_children?('/xyz').should be_false
+		end
+		it 'exact_child_name_under' do
+			pattern.exact_child_name_under('/').should == 'abc'
+			pattern.exact_child_name_under('/abc').should == nil
+			pattern.exact_child_name_under('/abc/def').should == nil
 		end
 	end
 
