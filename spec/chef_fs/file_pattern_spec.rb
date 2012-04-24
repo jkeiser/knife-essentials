@@ -138,6 +138,22 @@ describe ChefFS::FilePattern do
 		end
 	end
 
+	context 'with simple pattern "a\*\b"', :focus => true do
+		let(:pattern) { ChefFS::FilePattern.new('a\*\b') }
+		it 'match?' do
+			pattern.match?('a*b').should be_true
+			pattern.match?('ab').should be_false
+			pattern.match?('acb').should be_false
+			pattern.match?('ab').should be_false
+		end
+		it 'exact_path' do
+			pattern.exact_path.should == 'a*b'
+		end
+		it 'could_match_children?' do
+			pattern.could_match_children?('a/*b').should be_false
+		end
+	end
+
 	context 'with star pattern "/abc/*/ghi"' do
 		let(:pattern) { ChefFS::FilePattern.new('/abc/*/ghi') }
 		it 'match?' do
@@ -164,7 +180,7 @@ describe ChefFS::FilePattern do
 
 	context 'with star pattern "/abc/d*f/ghi"' do
 		let(:pattern) { ChefFS::FilePattern.new('/abc/d*f/ghi') }
-		it 'match?', :focus => true do
+		it 'match?' do
 			pattern.match?('/abc/def/ghi').should be_true
 			pattern.match?('/abc/dxf/ghi').should be_true
 			pattern.match?('/abc/df/ghi').should be_true
@@ -198,7 +214,7 @@ describe ChefFS::FilePattern do
 
 	context 'with star pattern "/abc/d??f/ghi"' do
 		let(:pattern) { ChefFS::FilePattern.new('/abc/d??f/ghi') }
-		it 'match?', :focus => true do
+		it 'match?' do
 			pattern.match?('/abc/deef/ghi').should be_true
 			pattern.match?('/abc/deeef/ghi').should be_false
 			pattern.match?('/abc/def/ghi').should be_false
@@ -231,7 +247,7 @@ describe ChefFS::FilePattern do
 
 	context 'with star pattern "/abc/d[a-z][0-9]f/ghi"' do
 		let(:pattern) { ChefFS::FilePattern.new('/abc/d[a-z][0-9]f/ghi') }
-		it 'match?', :focus => true do
+		it 'match?' do
 			pattern.match?('/abc/de1f/ghi').should be_true
 			pattern.match?('/abc/deef/ghi').should be_false
 			pattern.match?('/abc/d11f/ghi').should be_false

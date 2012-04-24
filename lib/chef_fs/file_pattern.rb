@@ -93,7 +93,10 @@ module ChefFS
     end
 
     # Returns the normalized version of the pattern, with / as the directory
-    # separator, backslashes normalized and "." and ".." removed.
+    # separator, and "." and ".." removed.
+    #
+    # This does not presently change things like \b to b, but in the future
+    # it might.
     def normalized_pattern
       calculate
       @normalized_pattern
@@ -210,21 +213,25 @@ module ChefFS
       end
     end
 
-    def self.regexp_special_characters
+    def self.pattern_special_characters
       if ChefFS::windows?
-        @regexp_special_characters ||= /(\*\*|\*|\?|[\*\?\.\|\(\)\[\]\{\}\+\\\\\^\$])/
+        @pattern_special_characters ||= /(\*\*|\*|\?|[\*\?\.\|\(\)\[\]\{\}\+\\\\\^\$])/
       else
         # Unix also supports character regexes and backslashes
-        @regexp_special_characters ||= /(\\.|\[[^\]]+\]|\*\*|\*|\?|[\*\?\.\|\(\)\[\]\{\}\+\\\\\^\$])/
+        @pattern_special_characters ||= /(\\.|\[[^\]]+\]|\*\*|\*|\?|[\*\?\.\|\(\)\[\]\{\}\+\\\\\^\$])/
       end
-      @regexp_special_characters
+      @pattern_special_characters
+    end
+
+    def self.regexp_escape_characters
+      [ '[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')', '{', '}' ]
     end
 
     def self.pattern_to_regexp(pattern)
       regexp = ""
       exact = ""
       has_double_star = false
-      pattern.split(regexp_special_characters).each_with_index do |part, index|
+      pattern.split(pattern_special_characters).each_with_index do |part, index|
         # Odd indexes from the split are symbols.  Even are normal bits.
         if index % 2 == 0
           exact << part if !exact.nil?
@@ -246,7 +253,11 @@ module ChefFS
             if part[0] == '\\' && part.length == 2
               # backslash escapes are only supported on Unix, and are handled here by leaving the escape on (it means the same thing in a regex)
               exact << part[1] if !exact.nil?
-              regexp << part
+              if regexp_escape_characters.include?(part[1])
+                regexp << part
+              else
+                regexp << part[1]
+              end
             elsif part[0] == '[' && part.length > 1
               # [...] happens only on Unix, and is handled here by *not* backslashing (it means the same thing in and out of regex)
               exact = nil
