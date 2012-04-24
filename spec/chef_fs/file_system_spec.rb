@@ -79,11 +79,34 @@ describe ChefFS::FileSystem do
 		let(:fs) { memory_fs({}) }
 
 		context 'list' do
+			it '/' do
+				list_should_yield_paths(fs, '/', '/')
+			end
+			it '/a' do
+				list_should_yield_paths(fs, '/a', '/a')
+			end
+			it '/a/b' do
+				list_should_yield_paths(fs, '/a/b')
+			end
+			it '/*' do
+				list_should_yield_paths(fs, '/*', '/')
+			end
+		end
 
+		context 'resolve_path' do
+			it '/' do
+				ChefFS::FileSystem.resolve_path(fs, '/').path.should == '/'
+			end
+			it 'nonexistent /a' do
+				ChefFS::FileSystem.resolve_path(fs, '/a').path.should == '/a'
+			end
+			it 'nonexistent /a/b' do
+				ChefFS::FileSystem.resolve_path(fs, '/a/b').path.should == '/a/b'
+			end
 		end
 	end
 
-	context 'with a normal filesytem' do
+	context 'with a populated filesystem' do
 		let(:fs) {
 			memory_fs({
 				:a => {
