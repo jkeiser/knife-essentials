@@ -9,6 +9,9 @@ module ChefFS
           @name = name
           @path = ChefFS::PathUtils::join(parent.path, name)
         else
+          if name != ''
+            raise ArgumentError, "Name of root object must be empty string: was '#{name}' instead"
+          end
           @path = '/'
         end
       end
