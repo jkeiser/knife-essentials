@@ -350,6 +350,8 @@ describe ChefFS::FilePattern do
 		let(:pattern) { ChefFS::FilePattern.new('/abc/**ghi') }
 		it 'match?' do
 			pattern.match?('/abc/def/ghi').should be_true
+			pattern.match?('/abc/def/ghi/ghi').should be_true
+			pattern.match?('/abc/def/ghi/jkl').should be_false
 			pattern.match?('/abc/d/e/f/ghi').should be_true
 			pattern.match?('/abc/ghi').should be_true
 			pattern.match?('/abcdef/ghi').should be_false
@@ -364,6 +366,7 @@ describe ChefFS::FilePattern do
 			pattern.could_match_children?('/abcdef').should be_false
 			pattern.could_match_children?('/abc/d/e').should be_true
 			pattern.could_match_children?('/abc/d/e/f').should be_true
+			pattern.could_match_children?('/abc/def/ghi').should be_true
 			pattern.could_match_children?('abc').should be_false
 			pattern.could_match_children?('/xyz').should be_false
 		end
@@ -371,6 +374,20 @@ describe ChefFS::FilePattern do
 			pattern.exact_child_name_under('/').should == 'abc'
 			pattern.exact_child_name_under('/abc').should == nil
 			pattern.exact_child_name_under('/abc/def').should == nil
+		end
+	end
+
+	context 'with star pattern "a**b**c"' do
+		let(:pattern) { ChefFS::FilePattern.new('a**b**c') }
+		it 'match?' do
+			pattern.match?('axybzwc').should be_true
+			pattern.match?('abc').should be_true
+			pattern.match?('axyzwc').should be_false
+			pattern.match?('ac').should be_false
+			pattern.match?('a/x/y/b/z/w/c').should be_true
+		end
+		it 'exact_path' do
+			pattern.exact_path.should be_nil
 		end
 	end
 
