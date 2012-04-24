@@ -185,7 +185,7 @@ module ChefFS
         # Check b for children that aren't in a
         b.children.each do |b_child|
           if !a_children_names.include?(b_child.name)
-            yield [ a.child(name), b_child ]
+            yield [ a.child(b_child.name), b_child ]
           end
         end
         return
