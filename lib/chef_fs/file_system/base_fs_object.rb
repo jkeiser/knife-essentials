@@ -4,12 +4,12 @@ module ChefFS
   module FileSystem
     class BaseFSObject
       def initialize(name, parent)
-        @name = name
         @parent = parent
         if parent
+          @name = name
           @path = ChefFS::PathUtils::join(parent.path, name)
         else
-          @path = name
+          @path = '/'
         end
       end
 
