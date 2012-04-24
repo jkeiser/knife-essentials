@@ -40,6 +40,12 @@ module ChefFS
     # if it matches and doesn't allow further children, this will
     # return <tt>false</tt>.
     #
+    # ==== Attributes
+    #
+    # * +path+ - a path to check
+    #
+    # ==== Examples
+    #
     #   abc/def.could_match_children?('abc') == true
     #   abc.could_match_children?('abc') == false
     #   abc/def.could_match_children?('x') == false
@@ -62,10 +68,21 @@ module ChefFS
       return true
     end
 
-    # Returns the next child name in an exact path.
+    # Returns the immediate child of a path that would be matched
+    # if this FilePattern was applied.  If more than one child
+    # could match, this method returns nil.
     #
-    # If this pattern can only match one possible child of the
-    # given <tt>path</tt>, this method returns its name.
+    # ==== Attributes
+    #
+    # * +path+ - The path to look for an exact child name under.
+    #
+    # ==== Returns
+    #
+    # The next directory in the pattern under the given path.
+    # If the directory part could match more than one child, it
+    # returns +nil+.
+    #
+    # ==== Examples
     #
     #   abc/def.exact_child_name_under('abc') == 'def'
     #   abc/def/ghi.exact_child_name_under('abc') == 'def'
@@ -73,7 +90,7 @@ module ChefFS
     #   abc/*/ghi.exact_child_name_under('abc/def') == 'ghi'
     #   abc/**/ghi.exact_child_name_under('abc/def') == nil
     # 
-    # This method assumes <tt>could_match_children?(path)</tt> is <tt>true</tt>.
+    # This method assumes +could_match_children?(path)+ is +true+.
     def exact_child_name_under(path)
       path = path[1,path.length-1] if !!(path[0] =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
       dirs_in_path = ChefFS::PathUtils::split(path).length

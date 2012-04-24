@@ -119,26 +119,58 @@ module ChefFS
       return []
     end
 
+    # Gets all common leaves, recursively, starting from the results of
+    # a pattern search on two roots.
+    #
+    # ==== Attributes
+    #
+    # * +pattern+ - a ChefFS::FilePattern representing the search you want to
+    #   do on both roots.
+    # * +a_root+ - the first root.
+    # * +b_root+ - 
+    # * +recurse_depth+ - the maximum number of directories to recurse from each
+    #   pattern result.  +0+ will cause pattern results to be immediately returned.
+    #   +nil+ means recurse infinitely to find all leaves.
+    #
     def self.diffable_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
       # Make sure everything on the server is also on the filesystem, and diff
       found_paths = Set.new
       ChefFS::FileSystem.list(a_root, pattern).each do |a|
         found_paths << a.path
-        b = ChefFS::FileSystem.get_path(b_root, a.path)
+        b = ChefFS::FileSystem.resolve_path(b_root, a.path)
         diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
           yield [ a_leaf, b_leaf ]
         end
       end
 
-      # Check the outer regex pattern to see if it matches anything on the filesystem that isn't on the server
+      # Check the outer regex pattern to see if it matches anything on the
+      # filesystem that isn't on the server
       ChefFS::FileSystem.list(b_root, pattern).each do |b|
         if !found_paths.include?(b.path)
-          a = ChefFS::FileSystem.get_path(a_root, b.path)
+          a = ChefFS::FileSystem.resolve_path(a_root, b.path)
           yield [ a, b ]
         end
       end
     end
 
+    # Gets all common leaves, recursively, from a pair of directories or files.  It
+    # recursively descends into all children of +a+ and +b+, yielding equivalent
+    # pairs (common children with the same name) when it finds:
+    # * +a+ or +b+ is not a directory.
+    # * Both +a+ and +b+ are empty.
+    # * It reaches +recurse_depth+ depth in the tree.
+    #
+    # This method will *not* check whether files exist, nor will it actually diff
+    # the contents of files.
+    #
+    # ==== Attributes
+    #
+    # +a+ - the first directory to recursively scan
+    # +b+ - the second directory to recursively scan, in tandem with +a+
+    # +recurse_depth - the maximum number of directories to go down.  +0+ will
+    # cause +a+ and +b+ to be immediately returned.  +nil+ means recurse
+    # infinitely.
+    #
     def self.diffable_leaves(a, b, recurse_depth)
       # If we have children, recurse into them and diff the children instead of returning ourselves.
       if recurse_depth != 0 && a.dir? && b.dir? && a.children.length > 0 && b.children.length > 0

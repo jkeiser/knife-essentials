@@ -2,7 +2,14 @@ require 'chef_fs/path_utils'
 
 module ChefFS
   module FileSystem
-    # Get a list of all things under (and including) this entry that match the given pattern
+    # Get a list of all things under (and including) this entry that match the
+    # given pattern.
+    #
+    # ==== Attributes
+    #
+    # * +entry+ - Entry to start listing under
+    # * +pattern+ - ChefFS::FilePattern to match children under
+    #
     def self.list(entry, pattern)
       result = []
 
@@ -33,10 +40,23 @@ module ChefFS
       result
     end
 
-    # Retrieve an exact path
-    def self.get_path(entry, path)
+    # Resolve the given path against the entry, returning
+    # the entry at the end of the path.
+    #
+    # ==== Attributes
+    # 
+    # * +entry+ - the entry to start looking under.  Relative
+    #   paths will be resolved from here.
+    # * +path+ - the path to resolve.  If it starts with +/+,
+    #   the path will be resolved starting from +entry.root+.
+    #
+    # ==== Examples
+    #
+    #     ChefFS::FileSystem.resolve_path(root_path, 'cookbooks/java/recipes/default.rb')
+    #
+    def self.resolve_path(entry, path)
       return entry if path.length == 0
-      return get_path(entry.root, path) if path[0] == "/" && entry.root != entry
+      return resolve_path(entry.root, path) if path[0] == "/" && entry.root != entry
       if path[0] == "/"
         path = path[1,path.length-1]
       end
