@@ -86,41 +86,46 @@ describe ChefFS::FileSystem do
 			})
 		}
 		context 'list' do
+			def list_should_yield_paths(fs, pattern_str, *expected)
+				results = []
+				ChefFS::FileSystem.list(fs, pattern(pattern_str)) { |result| results << result }
+				results.should return_paths(*expected)
+			end
 			it '/**' do
-				ChefFS::FileSystem.list(fs, pattern('/**')).should return_paths('/', '/a', '/x', '/a/aa', '/a/aa/c', '/a/aa/zz', '/a/ab', '/a/ab/c')
+				list_should_yield_paths(fs, '/**', '/', '/a', '/x', '/a/aa', '/a/aa/c', '/a/aa/zz', '/a/ab', '/a/ab/c')
 			end
 			it '/' do
-				ChefFS::FileSystem.list(fs, pattern('/')).should return_paths('/')
+				list_should_yield_paths(fs, '/', '/')
 			end
 			it '/*' do
-				ChefFS::FileSystem.list(fs, pattern('/*')).should return_paths('/', '/a', '/x')
+				list_should_yield_paths(fs, '/*', '/', '/a', '/x')
 			end
 			it '/*/*' do
-				ChefFS::FileSystem.list(fs, pattern('/*/*')).should return_paths('/a/aa', '/a/ab')
+				list_should_yield_paths(fs, '/*/*', '/a/aa', '/a/ab')
 			end
 			it '/*/*/*' do
-				ChefFS::FileSystem.list(fs, pattern('/*/*/*')).should return_paths('/a/aa/c', '/a/aa/zz', '/a/ab/c')
+				list_should_yield_paths(fs, '/*/*/*', '/a/aa/c', '/a/aa/zz', '/a/ab/c')
 			end
 			it '/*/*/?' do
-				ChefFS::FileSystem.list(fs, pattern('/*/*/?')).should return_paths('/a/aa/c', '/a/ab/c')
+				list_should_yield_paths(fs, '/*/*/?', '/a/aa/c', '/a/ab/c')
 			end
 			it '/a/*/c' do
-				ChefFS::FileSystem.list(fs, pattern('/a/*/c')).should return_paths('/a/aa/c', '/a/ab/c')
+				list_should_yield_paths(fs, '/a/*/c', '/a/aa/c', '/a/ab/c')
 			end
 			it '/**b/c' do
-				ChefFS::FileSystem.list(fs, pattern('/**b/c')).should return_paths('/a/ab/c')
+				list_should_yield_paths(fs, '/**b/c', '/a/ab/c')
 			end
 			it '/a/ab/c' do
 				no_blocking_calls_allowed
-				ChefFS::FileSystem.list(fs, pattern('/a/ab/c')).should return_paths('/a/ab/c')
+				list_should_yield_paths(fs, '/a/ab/c', '/a/ab/c')
 			end
 			it 'nonexistent /a/ab/blah' do
 				no_blocking_calls_allowed
-				ChefFS::FileSystem.list(fs, pattern('/a/ab/blah')).should return_paths('/a/ab/blah')
+				list_should_yield_paths(fs, '/a/ab/blah', '/a/ab/blah')
 			end
 			it 'nonexistent /a/ab/blah/bjork' do
 				no_blocking_calls_allowed
-				ChefFS::FileSystem.list(fs, pattern('/a/ab/blah/bjork')).should return_paths()
+				list_should_yield_paths(fs, '/a/ab/blah/bjork')
 			end
 		end
 

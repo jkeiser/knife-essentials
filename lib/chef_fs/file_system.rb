@@ -2,7 +2,7 @@ require 'chef_fs/path_utils'
 
 module ChefFS
   module FileSystem
-    # Get a list of all things under (and including) this entry that match the
+    # Yields a list of all things under (and including) this entry that match the
     # given pattern.
     #
     # ==== Attributes
@@ -10,12 +10,10 @@ module ChefFS
     # * +entry+ - Entry to start listing under
     # * +pattern+ - ChefFS::FilePattern to match children under
     #
-    def self.list(entry, pattern)
-      result = []
-
+    def self.list(entry, pattern, &block)
       # Include self in results if it matches
       if pattern.match?(entry.path)
-        result << entry
+        block.call(entry)
       end
 
       if entry.dir? && pattern.could_match_children?(entry.path)
@@ -27,17 +25,16 @@ module ChefFS
         if exact_child_name
           exact_child = entry.child(exact_child_name)
           if exact_child
-            result = result.concat(list(exact_child, pattern))
+            list(exact_child, pattern, &block)
           end
 
         # Otherwise, go through all children and find any matches
         else
           entry.children.each do |child|
-            result = result.concat(list(child, pattern))
+            list(child, pattern, &block)
           end
         end
       end
-      result
     end
 
     # Resolve the given path against the entry, returning

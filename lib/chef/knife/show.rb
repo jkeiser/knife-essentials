@@ -9,7 +9,7 @@ class Chef
       def run
         # Get the matches (recursively)
         pattern_args.each do |pattern|
-          ChefFS::FileSystem.list(chef_fs, pattern).each do |result|
+          ChefFS::FileSystem.list(chef_fs, pattern) do |result|
             if result.dir?
               STDERR.puts "#{format_path(result.path)}: is a directory" if pattern.exact_path
             else

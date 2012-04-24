@@ -135,7 +135,7 @@ module ChefFS
     def self.diffable_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
       # Make sure everything on the server is also on the filesystem, and diff
       found_paths = Set.new
-      ChefFS::FileSystem.list(a_root, pattern).each do |a|
+      ChefFS::FileSystem.list(a_root, pattern) do |a|
         found_paths << a.path
         b = ChefFS::FileSystem.resolve_path(b_root, a.path)
         diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
@@ -145,7 +145,7 @@ module ChefFS
 
       # Check the outer regex pattern to see if it matches anything on the
       # filesystem that isn't on the server
-      ChefFS::FileSystem.list(b_root, pattern).each do |b|
+      ChefFS::FileSystem.list(b_root, pattern) do |b|
         if !found_paths.include?(b.path)
           a = ChefFS::FileSystem.resolve_path(a_root, b.path)
           yield [ a, b ]
