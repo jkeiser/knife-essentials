@@ -27,15 +27,6 @@ module FileSystemSupport
 		end
 	end
 
-	class ReturnPaths < RSpec::Matchers::BuiltIn::MatchArray
-	  def initialize(expected)
-	  	super(expected)
-	  end
-	  def matches?(results)
-	  	super(results.map { |result| result.path })
-	  end
-	end
-
 	def memory_fs(value, name = '', parent = nil)
 		if value.is_a?(Hash)
 			dir = MemoryDir.new(name, parent)
@@ -64,10 +55,21 @@ module FileSystemSupport
 		end
 	end
 
-	def list_should_yield_paths(fs, pattern_str, *expected)
-		results = []
-		ChefFS::FileSystem.list(fs, pattern(pattern_str)) { |result| results << result }
-		results.should return_paths(*expected)
+	def diffable_leaves_should_yield_paths(a_root, b_root, recurse_depth, expected_paths)
+		result_paths = []
+		ChefFS::Diff.diffable_leaves(a_root, b_root, recurse_depth) do |a,b|
+			a.root.should == a_root
+			b.root.should == b_root
+			a.path.should == b.path
+			result_paths << a.path
+		end
+		result_paths.should =~ expected_paths
+	end
+
+	def list_should_yield_paths(fs, pattern_str, *expected_paths)
+		result_paths = []
+		ChefFS::FileSystem.list(fs, pattern(pattern_str)) { |result| result_paths << result.path }
+		result_paths.should =~ expected_paths
 	end
 end
 

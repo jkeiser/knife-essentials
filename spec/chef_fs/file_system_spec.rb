@@ -1,5 +1,5 @@
-require 'chef_fs/file_system'
 require 'support/file_system_support'
+require 'chef_fs/file_system'
 require 'chef_fs/file_pattern'
 
 describe ChefFS::FileSystem do
