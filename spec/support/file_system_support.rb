@@ -66,6 +66,17 @@ module FileSystemSupport
 		result_paths.should =~ expected_paths
 	end
 
+	def diffable_leaves_from_pattern_should_yield_paths(pattern, a_root, b_root, recurse_depth, expected_paths)
+		result_paths = []
+		ChefFS::Diff.diffable_leaves_from_pattern(pattern, a_root, b_root, recurse_depth) do |a,b|
+			a.root.should == a_root
+			b.root.should == b_root
+			a.path.should == b.path
+			result_paths << a.path
+		end
+		result_paths.should =~ expected_paths
+	end
+
 	def list_should_yield_paths(fs, pattern_str, *expected_paths)
 		result_paths = []
 		ChefFS::FileSystem.list(fs, pattern(pattern_str)) { |result| result_paths << result.path }
