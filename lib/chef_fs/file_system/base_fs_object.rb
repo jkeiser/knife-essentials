@@ -5,8 +5,8 @@ module ChefFS
     class BaseFSObject
       def initialize(name, parent)
         @parent = parent
+        @name = name
         if parent
-          @name = name
           @path = ChefFS::PathUtils::join(parent.path, name)
         else
           if name != ''
