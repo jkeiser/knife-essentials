@@ -1,5 +1,5 @@
 require 'chef_fs/knife'
-require 'chef_fs/diff'
+require 'chef_fs/command_line'
 
 class Chef
   class Knife
