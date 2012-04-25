@@ -12,9 +12,11 @@ Gem::Specification.new do |s|
   s.author = "John Keiser"
   s.email = "jkeiser@opscode.com"
   s.homepage = "http://www.opscode.com"
-  
-  # Uncomment this to add a dependency
-  #s.add_dependency "mixlib-log"
+
+  # We need a more recent version of mixlib-cli in order to support --no- options.
+  # ... but, we can live with those options not working, if it means the plugin
+  # can be included with apps that have restrictive Gemfile.locks.
+  # s.add_dependency "mixlib-cli", ">= 1.2.2"
   
   s.require_path = 'lib'
   s.files = %w(LICENSE README.rdoc Rakefile) + Dir.glob("{lib,spec}/**/*")
