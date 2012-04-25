@@ -38,7 +38,7 @@ describe ChefFS::FileSystem do
 
 	context 'with a populated filesystem' do
 		let(:fs) {
-			memory_fs(''. {
+			memory_fs('', {
 				:a => {
 					:aa => {
 						:c => '',
