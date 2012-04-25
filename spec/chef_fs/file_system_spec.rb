@@ -6,7 +6,7 @@ describe ChefFS::FileSystem do
 	include FileSystemSupport
 
 	context 'with empty filesystem' do
-		let(:fs) { memory_fs({}) }
+		let(:fs) { memory_fs('', {}) }
 
 		context 'list' do
 			it '/' do
@@ -38,7 +38,7 @@ describe ChefFS::FileSystem do
 
 	context 'with a populated filesystem' do
 		let(:fs) {
-			memory_fs({
+			memory_fs(''. {
 				:a => {
 					:aa => {
 						:c => '',

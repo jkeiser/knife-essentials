@@ -27,15 +27,37 @@ module FileSystemSupport
 		end
 	end
 
-	def memory_fs(value, name = '', parent = nil)
+	class MemoryRoot < MemoryDir
+		def initialize(pretty_name)
+			super('', nil)
+			@pretty_name = pretty_name
+		end
+
+		def path_for_printing
+			@pretty_name
+		end
+	end
+
+	def memory_fs(pretty_name, value)
+		if !value.is_a?(Hash)
+			raise "memory_fs() must take a Hash"
+		end
+		dir = MemoryRoot.new(pretty_name)
+		value.each do |key, child|
+			dir.add_child(memory_fs_value(child, key.to_s, dir))
+		end
+		dir
+	end
+
+	def memory_fs_value(value, name = '', parent = nil)
 		if value.is_a?(Hash)
 			dir = MemoryDir.new(name, parent)
 			value.each do |key, child|
-				dir.add_child(memory_fs(child, key.to_s, dir))
+				dir.add_child(memory_fs_value(child, key.to_s, dir))
 			end
 			dir
 		else
-			MemoryFile.new(name, parent, value)
+			MemoryFile.new(name, parent, value || "#{name}\n")
 		end
 	end
 
