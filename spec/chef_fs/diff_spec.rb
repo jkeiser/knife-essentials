@@ -14,6 +14,8 @@ describe ChefFS::Diff do
           :sub_both_files => nil,
           :sub_both_files_different => "a\n",
 					:sub_both_dirs_empty => {},
+          :sub_dirs_empty_in_a_filled_in_b => {},
+          :sub_dirs_empty_in_b_filled_in_a => { :subsub => nil },
 					:sub_a_only_dir => { :subsub => nil },
 					:sub_a_only_file => nil,
 					:sub_dir_in_a_file_in_b => {},
@@ -21,7 +23,9 @@ describe ChefFS::Diff do
 				},
 				:both_files => nil,
         :both_files_different => "a\n",
-				:both_dirs_empty => {},
+        :both_dirs_empty => {},
+        :dirs_empty_in_a_filled_in_b => {},
+        :dirs_empty_in_b_filled_in_a => { :subsub => nil },
 				:a_only_dir => { :subsub => nil },
 				:a_only_file => nil,
 				:dir_in_a_file_in_b => {},
@@ -35,6 +39,8 @@ describe ChefFS::Diff do
 					:sub_both_files => nil,
           :sub_both_files_different => "b\n",
 					:sub_both_dirs_empty => {},
+          :sub_dirs_empty_in_a_filled_in_b => { :subsub => nil },
+          :sub_dirs_empty_in_b_filled_in_a => {},
 					:sub_b_only_dir => { :subsub => nil },
 					:sub_b_only_file => nil,
 					:sub_dir_in_a_file_in_b => nil,
@@ -43,6 +49,8 @@ describe ChefFS::Diff do
 				:both_files => nil,
         :both_files_different => "b\n",
 				:both_dirs_empty => {},
+        :dirs_empty_in_a_filled_in_b => { :subsub => nil },
+        :dirs_empty_in_b_filled_in_a => {},
 				:b_only_dir => { :subsub => nil },
 				:b_only_file => nil,
 				:dir_in_a_file_in_b => nil,
@@ -55,7 +63,8 @@ describe ChefFS::Diff do
           /both_dirs/sub_both_dirs/subsub
           /both_dirs/sub_both_files
           /both_dirs/sub_both_files_different
-          /both_dirs/sub_both_dirs_empty
+          /both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub
+          /both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub
           /both_dirs/sub_a_only_dir
           /both_dirs/sub_a_only_file
           /both_dirs/sub_b_only_dir
@@ -64,7 +73,8 @@ describe ChefFS::Diff do
           /both_dirs/sub_file_in_a_dir_in_b
           /both_files
           /both_files_different
-          /both_dirs_empty
+          /dirs_empty_in_b_filled_in_a/subsub
+          /dirs_empty_in_a_filled_in_b/subsub
           /a_only_dir
           /a_only_file
           /b_only_dir
@@ -96,14 +106,16 @@ describe ChefFS::Diff do
           /both_dirs/sub_both_dirs/subsub
           /both_dirs/sub_both_files
           /both_dirs/sub_both_files_different
-          /both_dirs/sub_both_dirs_empty
+          /both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub
+          /both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub
           /both_dirs/sub_a_only_dir
           /both_dirs/sub_a_only_file
           /both_dirs/sub_b_only_dir
           /both_dirs/sub_b_only_file
           /both_dirs/sub_dir_in_a_file_in_b
           /both_dirs/sub_file_in_a_dir_in_b
-          /both_dirs_empty
+          /dirs_empty_in_b_filled_in_a/subsub
+          /dirs_empty_in_a_filled_in_b/subsub
           /a_only_dir
           /b_only_dir
           /dir_in_a_file_in_b
@@ -122,7 +134,18 @@ describe ChefFS::Diff do
 @@ -1 +1 @@
 -a
 +b
-','Common subdirectories: /both_dirs/sub_both_dirs_empty
+','diff --knife a/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub b/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub
+new file
+--- /dev/null DATE
++++ b/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub DATE
+@@ -0,0 +1 @@
++subsub
+','diff --knife a/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub b/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub
+deleted file
+--- a/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub DATE
++++ /dev/null DATE
+@@ -1 +0,0 @@
+-subsub
 ','Only in a/both_dirs: sub_a_only_dir
 ','diff --knife a/both_dirs/sub_a_only_file b/both_dirs/sub_a_only_file
 deleted file
@@ -145,7 +168,18 @@ new file
 @@ -1 +1 @@
 -a
 +b
-','Common subdirectories: /both_dirs_empty
+','diff --knife a/dirs_empty_in_a_filled_in_b/subsub b/dirs_empty_in_a_filled_in_b/subsub
+new file
+--- /dev/null DATE
++++ b/dirs_empty_in_a_filled_in_b/subsub DATE
+@@ -0,0 +1 @@
++subsub
+','diff --knife a/dirs_empty_in_b_filled_in_a/subsub b/dirs_empty_in_b_filled_in_a/subsub
+deleted file
+--- a/dirs_empty_in_b_filled_in_a/subsub DATE
++++ /dev/null DATE
+@@ -1 +0,0 @@
+-subsub
 ','Only in a: a_only_dir
 ','diff --knife a/a_only_file b/a_only_file
 deleted file
@@ -176,7 +210,18 @@ new file
 @@ -1 +1 @@
 -a
 +b
-','Common subdirectories: /both_dirs/sub_both_dirs_empty
+','diff --knife a/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub b/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub
+new file
+--- /dev/null DATE
++++ b/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub DATE
+@@ -0,0 +1 @@
++subsub
+','diff --knife a/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub b/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub
+deleted file
+--- a/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub DATE
++++ /dev/null DATE
+@@ -1 +0,0 @@
+-subsub
 ','Only in a/both_dirs: sub_a_only_dir
 ','diff --knife a/both_dirs/sub_a_only_file b/both_dirs/sub_a_only_file
 deleted file
@@ -209,6 +254,8 @@ new file
 -a
 +b
 ','Common subdirectories: /both_dirs_empty
+','Common subdirectories: /dirs_empty_in_b_filled_in_a
+','Common subdirectories: /dirs_empty_in_a_filled_in_b
 ','Only in a: a_only_dir
 ','diff --knife a/a_only_file b/a_only_file
 deleted file
@@ -241,6 +288,8 @@ new file
 -a
 +b
 ','Common subdirectories: /both_dirs_empty
+','Common subdirectories: /dirs_empty_in_b_filled_in_a
+','Common subdirectories: /dirs_empty_in_a_filled_in_b
 ','Only in a: a_only_dir
 ','diff --knife a/a_only_file b/a_only_file
 deleted file

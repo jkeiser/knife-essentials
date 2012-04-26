@@ -121,8 +121,8 @@ module ChefFS
     # infinitely.
     #
     def self.diffable_leaves(a, b, recurse_depth)
-      # If we have children, recurse into them and diff the children instead of returning ourselves.
-      if recurse_depth != 0 && a.dir? && b.dir? && a.children.length > 0 && b.children.length > 0
+      # If both are directories, recurse into them and diff the children instead of returning ourselves.
+      if recurse_depth != 0 && a.dir? && b.dir?
         a_children_names = Set.new
         a.children.each do |a_child|
           a_children_names << a_child.name
