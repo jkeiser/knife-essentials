@@ -16,7 +16,8 @@ module ChefFS
       end
       # dot-dot up from 'source' to the common ancestor, then
       # descend to 'dest' from the common ancestor
-      ChefFS::PathUtils.join(*(['..']*(source_parts.length-i) + dest_parts[i,dest.length-i]))
+      result = ChefFS::PathUtils.join(*(['..']*(source_parts.length-i) + dest_parts[i,dest.length-i]))
+      result == '' ? '.' : result
     end
 
     def self.join(*parts)
