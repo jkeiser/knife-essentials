@@ -2,7 +2,17 @@
 
 = DESCRIPTION:
 
-ChefFS provides a number of useful knife plugins following two principles:
+ChefFS provides a number of useful knife plugins that allow you to manipulate
+Chef using a common set of verbs that work on *everything*.
+
+   knife diff cookbooks/*apache*
+   knife list data_bags/users
+   knife show roles/*base*
+
+The plugin is in early days: more verbs will be added as time goes by, including
++edit+, +delete+, +upload+ and +download+.
+
+= PRINCIPLES
 
 * Unified commands that work on everything
 
@@ -63,25 +73,6 @@ To run the knife plugin functionality, install a version of Chef > 0.10.10:
 
     gem install chef
 
-== NOTE
-
-Since these patterns are also interpreted by the shell in Unix,
-you will need to backslash them if you want these knife commands to actually
-look at the server.  For example, if you want to list all data bags starting
-with "a" on the server, you can do
-
-    knife list data_bags/a\*
-
-If you do this instead, the shell will expand the pattern before passing it to knife:
-
-    knife list data_bags/a*
-
-Expands to the list of data bags on your local filesystem:
-
-    knife list data_bags/aardvarks data_bags/anagrams
-
-But this means that if the server has a data bag named +arp_tables+, you won't see it.
-
 == knife diff
 
     knife diff [pattern1 pattern2 ...]
@@ -101,3 +92,22 @@ Works just like 'ls', except it lists files on the server.
 
 Works just like +knife node show+, +knife role show+, etc. except there is One Verb To Rule
 Them All.
+
+== NOTE
+
+Since these patterns are also interpreted by the shell in Unix,
+you will need to backslash them if you want these knife commands to actually
+look at the server.  For example, if you want to list all data bags starting
+with "a" on the server, you can do
+
+    knife list data_bags/a\*
+
+If you do this instead, the shell will expand the pattern before passing it to knife:
+
+    knife list data_bags/a*
+
+Expands to the list of data bags on your local filesystem:
+
+    knife list data_bags/aardvarks data_bags/anagrams
+
+But this means that if the server has a data bag named +arp_tables+, you won't see it.
