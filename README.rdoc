@@ -94,21 +94,27 @@ Works just like 'ls', except it lists files on the server.
 Works just like +knife node show+, +knife role show+, etc. except there is One Verb To Rule
 Them All.
 
-== NOTE
+== NOTE ABOUT WILDCARDS
 
-Since these patterns are also interpreted by the shell in Unix,
-you will need to backslash them if you want these knife commands to actually
-look at the server.  For example, if you want to list all data bags starting
-with "a" on the server, you can do
+knife-essentials supports wildcards internally, and will use them to sift through objects
+on the server.  This can be very useful.  However, since it uses the same wildcard
+characters as the Unix command line (+*+, +?+, etc.), you need to backslash them so that
+the +*+ actually reaches the server.  If you don't, the shell will expand the * into
+actual filenames and knife will never know you typed +*+ in the first place.  For example,
+if the Chef server has data bags +aardvarks+, +anagrams+ and +arp_tables+, but your local
+filesystem only has +aardvarks+ and +anagrams+, backslashing vs. not backslashing will
+yield slightly different results:
 
-    knife list data_bags/a\*
+    # This actually asks the server for everything starting with a
+    $ knife list data_bags/a\*
+    aardvarks/ anagrams/ arp_tables/
+    # But this ...
+    $ knife list data_bags/a*
+    aardvarks/ anagrams/
+    # Is actually expanded by the command line to this:
+    $ knife list data_bags/aardvarks data_bags/aardvarks
+    aardvarks/ anagrams/
 
-If you do this instead, the shell will expand the pattern before passing it to knife:
+You can avoid this problem permanently in zsh with this alias:
 
-    knife list data_bags/a*
-
-Expands to the list of data bags on your local filesystem:
-
-    knife list data_bags/aardvarks data_bags/anagrams
-
-But this means that if the server has a data bag named +arp_tables+, you won't see it.
+    alias knife="noglob knife"
