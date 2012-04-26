@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
   s.extra_rdoc_files = ["README.rdoc", "LICENSE"]
-  s.summary = "A library that treats the Chef server as if it were a filesystem"
+  s.summary = "Universal knife verbs that work with your Chef repository"
   s.description = s.summary
   s.author = "John Keiser"
   s.email = "jkeiser@opscode.com"
