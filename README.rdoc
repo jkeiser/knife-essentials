@@ -1,9 +1,10 @@
-== ChefFS
+== Knife Essentials
 
 = DESCRIPTION:
 
-ChefFS provides a number of useful knife plugins that allow you to manipulate
-Chef using a common set of verbs that work on *everything*.
+knife-essentials provides a number of useful knife commands that allow you
+to manipulate Chef using a common set of verbs that work on *everything*
+that is stored in the Chef server.
 
    knife diff cookbooks/*apache*
    knife list data_bags/users
@@ -16,17 +17,17 @@ The plugin is in early days: more verbs will be added as time goes by, including
 
 * Unified commands that work on everything
 
-ChefFS thinks verbs come first.  There are only a few things you need to do with
+knife-essentials thinks verbs come first.  There are only a few things you need to do with
 pretty much everything in the system: you upload them, download them, look at
 them, edit them, list them, diff them, and delete then.
 
-ChefFS provides a number of verb commands: +knife diff roles+ and +knife list roles+
+knife-essentials provides a number of verb commands: +knife diff roles+ and +knife list roles+
 among them.  These commands work on all types of objects, as well.  You can type
 +knife diff roles+, or +knife diff data_bags/users/jkeiser.json+.
 
 * Treat the Chef server is like your filesystem
 
-ChefFS treats the Chef server like a mirror of a Chef repository.  Most of the
+knife-essentials treats the Chef server like a mirror of a Chef repository.  Most of the
 stuff you do with the Chef Server is based on your local repository--a set of files
 in directories like +roles+, +data_bags+, +cookbooks+, etc.  The Chef Server has
 objects that match them--in fact, you can upload and download the files on your
@@ -39,7 +40,7 @@ diff, upload and download extremely simple to do and easy to understand.
 
 When you're in the +roles+ directory, the system knows that's what you are
 working with.  Just type +knife show base.json+ and it will show you the base
-role from the server.  ChefFS knows.
+role from the server.  knife-essentials knows.
 
 = INSTALLATION:
 
