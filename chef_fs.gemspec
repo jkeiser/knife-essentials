@@ -2,7 +2,7 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 require 'chef_fs/version'
 
 Gem::Specification.new do |s|
-  s.name = "chef_fs"
+  s.name = "knife-essentials"
   s.version = ChefFS::VERSION
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
