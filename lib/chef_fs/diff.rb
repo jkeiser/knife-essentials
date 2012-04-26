@@ -59,64 +59,13 @@ module ChefFS
     def self.context_aware_diff(old_file, new_file, old_value, new_value)
       # TODO handle errors in reading JSON
       if old_file.content_type == :json || new_file.content_type == :json
-        new_value = Chef::JSONCompat.from_json(new_value).to_hash
-        old_value = Chef::JSONCompat.from_json(old_value).to_hash
+        new_value = Chef::JSONCompat.from_json(new_value)
+        old_value = Chef::JSONCompat.from_json(old_value)
 
-        diff = diff_json(old_file, new_file, old_value, new_value, "")
-        #if diff.length > 0
-        #  puts "#{new_file.path_for_printing}: Files are different"
-        #  diff.each { |message| puts "  #{message}" }
-        #end
-        diff.length > 0
+        old_value != new_value
       else
         true
       end
-    end
-
-    def self.diff_json(old_file, new_file, old_file_value, new_file_value, name)
-      if old_file_value.is_a? Hash
-        if !new_file_value.is_a? Hash
-          return [ "#{name} has type #{new_file_value.class} in #{new_file.path_for_printing} and #{old_file_value.class} in #{old_file.path_for_printing}" ]
-        end
-
-        results = []
-        new_file_value.each_pair do |key, value|
-          new_name = name != "" ? "#{name}.#{key}" : key
-          if !old_file_value.has_key?(key)
-            results << "#{new_name} exists in #{new_file.path_for_printing} but not in #{old_file.path_for_printing}"
-          else
-            results += diff_json(old_file, new_file, old_file_value[key], new_file_value[key], new_name)
-          end
-        end
-        old_file_value.each_key do |key|
-          new_name = name != "" ? "#{name}.#{key}" : key
-          if !new_file_value.has_key?(key)
-            results << "#{new_name} exists in #{old_file.path_for_printing} but not in #{new_file.path_for_printing}"
-          end
-        end
-        return results
-      end
-
-      if new_file_value.is_a? Array
-        if !old_file_value.is_a? Array
-          return "#{name} has type #{new_file_value.class} in #{new_file.path_for_printing} and #{old_file_value.class} in #{old_file.path_for_printing}"
-        end
-
-        results = []
-        if old_file_value.length != new_file_value.length
-          results << "#{name} is length #{new_file_value.length} in #{new_file.path_for_printing}, and #{old_file_value.length} in #{old_file.path_for_printing}" 
-        end
-        0.upto([ new_file_value.length, old_file_value.length ].min - 1) do |i|
-          results += diff_json(old_file, new_file, old_file_value[i], new_file_value[i], "#{name}[#{i}]")
-        end
-        return results
-      end
-
-      if new_file_value != old_file_value
-        return [ "#{name} is #{new_file_value.inspect} in #{new_file.path_for_printing} and #{old_file_value.inspect} in #{old_file.path_for_printing}" ]
-      end
-
-      return []
     end
 
     # Gets all common leaves, recursively, starting from the results of
