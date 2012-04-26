@@ -11,6 +11,15 @@ module ChefFS
         @exists = nil
       end
 
+      def dir?
+        exists?
+      end
+
+      def read
+        # This will only be called if dir? is false, which means exists? is false.
+        raise ChefFS::FileSystem::NotFoundException, path_for_printing
+      end
+
       def exists?
         if @exists.nil?
           @exists = parent.children.any? { |child| child.name == name }
