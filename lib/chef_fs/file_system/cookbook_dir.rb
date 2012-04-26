@@ -50,6 +50,15 @@ module ChefFS
         @children
       end
 
+      def dir?
+        exists?
+      end
+
+      def read
+        # This will only be called if dir? is false, which means exists? is false.
+        raise ChefFS::FileSystem::NotFoundException, path_for_printing
+      end
+
       def exists?
         if !@versions
           child = parent.children.select { |child| child.name == name }.first
