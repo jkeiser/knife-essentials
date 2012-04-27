@@ -18,6 +18,10 @@ module ChefFS
       def children
         @children ||= rest.get_rest(api_path).keys.map { |entry| DataBagDir.new(entry, self, true) }
       end
+
+      def can_have_child?(name, is_dir)
+        is_dir
+      end
     end
   end
 end
