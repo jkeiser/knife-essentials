@@ -51,47 +51,122 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     end
   end
 
-  context 'clients' do
-    let(:clients) { root_dir.child('clients') }
-    it 'parent is root' do
-      clients.parent.should == root_dir
-    end
+  shared_examples 'a json rest endpoint' do
     it 'is a directory' do
-      clients.dir?.should be_true
+      endpoint.dir?.should be_true
     end
     it 'exists' do
-      clients.exists?.should be_true
-    end
-    it 'has path /clients' do
-      clients.path.should == '/clients'
-    end
-    it 'has path_for_printing remote/clients' do
-      clients.path_for_printing.should == 'remote/clients'
+      endpoint.exists?.should be_true
     end
     it 'can have json files as children' do
-      clients.can_have_child?('blah.json', false).should be_true
+      endpoint.can_have_child?('blah.json', false).should be_true
     end
     it 'cannot have non-json files as children' do
-      clients.can_have_child?('blah', false).should be_false
+      endpoint.can_have_child?('blah', false).should be_false
     end
     it 'cannot have directories as children' do
-      clients.can_have_child?('blah', true).should be_false
-      clients.can_have_child?('blah.json', true).should be_false
+      endpoint.can_have_child?('blah', true).should be_false
+      endpoint.can_have_child?('blah.json', true).should be_false
     end
     it 'child() with existent child returns REST file' do
-      clients.child('notachild').dir?.should be_false
+      endpoint.child('notachild').dir?.should be_false
     end
     context 'with children' do
       before(:each) do
-        @rest.should_receive(:get_rest).with('clients').once.and_return(
+        @rest.should_receive(:get_rest).with(endpoint_name).once.and_return(
           {
             "achild" => "http://opscode.com/achild",
             "bchild" => "http://opscode.com/bchild"
           })
       end
       it 'has correct children' do
-        clients.children.map { |child| child.name }.should =~ %w(achild.json bchild.json)
+        endpoint.children.map { |child| child.name }.should =~ %w(achild.json bchild.json)
       end
+    end
+  end
+
+  context 'clients in children' do
+    let(:endpoint_name) { 'clients' }
+    let(:endpoint) { root_dir.children.select { |child| child.name == 'clients' }.first }
+
+    it_behaves_like 'a json rest endpoint'
+
+    it 'parent is root' do
+      endpoint.parent.should == root_dir
+    end
+    it 'has path /clients' do
+      endpoint.path.should == '/clients'
+    end
+    it 'has path_for_printing remote/clients' do
+      endpoint.path_for_printing.should == 'remote/clients'
+    end
+  end
+
+  context 'root.child(clients)' do
+    let(:endpoint_name) { 'clients' }
+    let(:endpoint) { root_dir.child('clients') }
+
+    it_behaves_like 'a json rest endpoint'
+
+    it 'parent is root' do
+      endpoint.parent.should == root_dir
+    end
+    it 'has path /clients' do
+      endpoint.path.should == '/clients'
+    end
+    it 'has path_for_printing remote/clients' do
+      endpoint.path_for_printing.should == 'remote/clients'
+    end
+  end
+
+  context 'root.child(environments)' do
+    let(:endpoint_name) { 'environments' }
+    let(:endpoint) { root_dir.child('environments') }
+
+    it_behaves_like 'a json rest endpoint'
+
+    it 'parent is root' do
+      endpoint.parent.should == root_dir
+    end
+    it 'has path /environments' do
+      endpoint.path.should == '/environments'
+    end
+    it 'has path_for_printing remote/environments' do
+      endpoint.path_for_printing.should == 'remote/environments'
+    end
+  end
+
+  context 'root.child(nodes)' do
+    let(:endpoint_name) { 'nodes' }
+    let(:endpoint) { root_dir.child('nodes') }
+
+    it_behaves_like 'a json rest endpoint'
+
+    it 'parent is root' do
+      endpoint.parent.should == root_dir
+    end
+    it 'has path /nodes' do
+      endpoint.path.should == '/nodes'
+    end
+    it 'has path_for_printing remote/nodes' do
+      endpoint.path_for_printing.should == 'remote/nodes'
+    end
+  end
+
+  context 'root.child(roles)' do
+    let(:endpoint_name) { 'roles' }
+    let(:endpoint) { root_dir.child('roles') }
+
+    it_behaves_like 'a json rest endpoint'
+
+    it 'parent is root' do
+      endpoint.parent.should == root_dir
+    end
+    it 'has path /roles' do
+      endpoint.path.should == '/roles'
+    end
+    it 'has path_for_printing remote/roles' do
+      endpoint.path_for_printing.should == 'remote/roles'
     end
   end
 end
