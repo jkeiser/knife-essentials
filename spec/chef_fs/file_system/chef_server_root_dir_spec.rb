@@ -13,7 +13,7 @@ describe ChefFS::FileSystem::ChefServerRootDir do
       endpoint_leaf.exists?.should be_true
     end
     it 'read returns content' do
-      @rest.should_receive(:get_rest).with("#{endpoint_name}/#{endpoint_leaf_name}/environments/blah").once.and_return(
+      @rest.should_receive(:get_rest).with("#{endpoint_name}/#{endpoint_leaf_name}/environments/env").once.and_return(
         {
           'a' => 'b'
         })
@@ -77,7 +77,7 @@ describe ChefFS::FileSystem::ChefServerRootDir do
         nonexistent_child.dir?.should be_false
       end
       it 'read returns NotFoundException' do
-        @rest.should_receive(:get_rest).with("#{endpoint_name}/blah/environments/blah").once.and_raise(Net::HTTPServerException.new(nil,Net::HTTPResponse.new(nil,'404',nil)))
+        @rest.should_receive(:get_rest).with("#{endpoint_name}/blah/environments/env").once.and_raise(Net::HTTPServerException.new(nil,Net::HTTPResponse.new(nil,'404',nil)))
         expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundException)
       end
     end
@@ -89,7 +89,7 @@ describe ChefFS::FileSystem::ChefServerRootDir do
       :chef_server_url => 'url',
       :node_name => 'username',
       :client_key => 'key',
-      :environment => 'blah'
+      :environment => 'env'
     })
   }
   before(:each) do
