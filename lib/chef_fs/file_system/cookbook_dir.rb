@@ -1,7 +1,6 @@
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbook_subdir'
 require 'chef_fs/file_system/cookbook_file'
-require 'chef/cookbook_version'
 
 module ChefFS
   module FileSystem
@@ -38,19 +37,18 @@ module ChefFS
       end
 
       def can_have_child?(name, is_dir)
-        # A cookbook may have files in its root directory, and directories matching the known segment dirs
-        if name != 'root_files' && Chef::CookbookVersion::COOKBOOK_SEGMENTS.any? { |segment| segment.to_s == name }
-          return is_dir
+        # A cookbook's root may not have directories unless they are segment directories
+        if is_dir
+          return name != 'root_files' && COOKBOOK_SEGMENT_INFO.keys.any? { |segment| segment.to_s == name }
         end
-        !is_dir
+        true
       end
 
       def children
         if @children.nil?
           @children = []
-          Chef::CookbookVersion::COOKBOOK_SEGMENTS.each do |segment|
+          COOKBOOK_SEGMENT_INFO.each do |segment, segment_info|
             next unless manifest.has_key?(segment)
-            segment_info = COOKBOOK_SEGMENT_INFO[segment]
 
             # Go through each file in the manifest for the segment, and
             # add cookbook subdirs and files for it.
