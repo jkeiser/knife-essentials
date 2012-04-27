@@ -29,11 +29,11 @@ module ChefFS
       end
 
       def path_for_printing
-        @root_name
+        "#{@root_name}/"
       end
 
-      def can_have_child?(name)
-        @children.any? { |child| child.name == name }
+      def can_have_child?(name, is_dir)
+        is_dir && children.any? { |child| child.name == name }
       end
 
       def children
