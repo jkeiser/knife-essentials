@@ -28,7 +28,7 @@ module ChefFS
         elsif new_file.exists?
           result << "File #{new_file.path_for_printing} is a directory while file #{new_file.path_for_printing} is a regular file\n"
         elsif new_file.parent.can_have_child?(old_file.name, old_file.dir?)
-          result << "Only in #{old_file.parent.path_for_printing}: #{old_file.name}\n" if new_file.parent.could_have_children?()
+          result << "Only in #{old_file.parent.path_for_printing}: #{old_file.name}\n"
         end
 
       # If new is a directory and old does not exist
