@@ -5,6 +5,15 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     it 'parent is endpoint' do
       endpoint_leaf.parent.should == endpoint
     end
+    it 'name is correct' do
+      endpoint_leaf.name.should == "#{endpoint_leaf_name}.json"
+    end
+    it 'path is correct' do
+      endpoint_leaf.path.should == "/#{endpoint_name}/#{endpoint_leaf_name}.json"
+    end
+    it 'path_for_printing is correct' do
+      endpoint_leaf.path_for_printing.should == "remote/#{endpoint_name}/#{endpoint_leaf_name}.json"
+    end
     it 'is not a directory' do
       endpoint_leaf.dir?.should be_false
     end
@@ -24,6 +33,18 @@ describe ChefFS::FileSystem::ChefServerRootDir do
   end
 
   shared_examples 'a json rest endpoint dir' do
+    it 'parent is root' do
+      endpoint.parent.should == root_dir
+    end
+    it 'has correct name' do
+      endpoint.name.should == endpoint_name
+    end
+    it 'has correct path' do
+      endpoint.path.should == "/#{endpoint_name}"
+    end
+    it 'has correct path_for_printing' do
+      endpoint.path_for_printing.should == "remote/#{endpoint_name}"
+    end
     it 'is a directory' do
       endpoint.dir?.should be_true
     end
@@ -52,15 +73,18 @@ describe ChefFS::FileSystem::ChefServerRootDir do
       endpoint.children.map { |child| child.name }.should =~ %w(achild.json bchild.json)
     end
     context 'achild in endpoint.children' do
-      before(:each) do
-        should_receive_children
-      end
       let(:endpoint_leaf_name) { 'achild' }
-      let(:endpoint_leaf) { endpoint.children.select { |child| child.name == 'achild.json' }.first }
+      let(:endpoint_leaf) do
+        should_receive_children
+        endpoint.children.select { |child| child.name == 'achild.json' }.first
+      end
       it_behaves_like 'a json endpoint dir leaf'
     end
-#    context 'endpoint.child(achild)' do
-#    end
+    context 'endpoint.child(achild)' do
+      let(:endpoint_leaf_name) { 'achild' }
+      let(:endpoint_leaf) { endpoint.child('achild.json') }
+      it_behaves_like 'a json endpoint dir leaf'
+    end
     context 'nonexistent child()' do
       let(:nonexistent_child) { endpoint.child('blah.json') }
       it 'has correct parent, name, path and path_for_printing' do
@@ -105,6 +129,9 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     end
     it 'exists' do
       root_dir.exists?.should be_true
+    end
+    it 'has name ""' do
+      root_dir.name.should == ""
     end
     it 'has path /' do
       root_dir.path.should == '/'
@@ -153,16 +180,6 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     let(:endpoint) { root_dir.children.select { |child| child.name == 'clients' }.first }
 
     it_behaves_like 'a json rest endpoint dir'
-
-    it 'parent is root' do
-      endpoint.parent.should == root_dir
-    end
-    it 'has path /clients' do
-      endpoint.path.should == '/clients'
-    end
-    it 'has path_for_printing remote/clients' do
-      endpoint.path_for_printing.should == 'remote/clients'
-    end
   end
 
   context 'root.child(clients)' do
@@ -170,16 +187,6 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     let(:endpoint) { root_dir.child('clients') }
 
     it_behaves_like 'a json rest endpoint dir'
-
-    it 'parent is root' do
-      endpoint.parent.should == root_dir
-    end
-    it 'has path /clients' do
-      endpoint.path.should == '/clients'
-    end
-    it 'has path_for_printing remote/clients' do
-      endpoint.path_for_printing.should == 'remote/clients'
-    end
   end
 
   context 'root.child(environments)' do
@@ -187,16 +194,6 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     let(:endpoint) { root_dir.child('environments') }
 
     it_behaves_like 'a json rest endpoint dir'
-
-    it 'parent is root' do
-      endpoint.parent.should == root_dir
-    end
-    it 'has path /environments' do
-      endpoint.path.should == '/environments'
-    end
-    it 'has path_for_printing remote/environments' do
-      endpoint.path_for_printing.should == 'remote/environments'
-    end
   end
 
   context 'root.child(nodes)' do
@@ -204,16 +201,6 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     let(:endpoint) { root_dir.child('nodes') }
 
     it_behaves_like 'a json rest endpoint dir'
-
-    it 'parent is root' do
-      endpoint.parent.should == root_dir
-    end
-    it 'has path /nodes' do
-      endpoint.path.should == '/nodes'
-    end
-    it 'has path_for_printing remote/nodes' do
-      endpoint.path_for_printing.should == 'remote/nodes'
-    end
   end
 
   context 'root.child(roles)' do
@@ -221,15 +208,5 @@ describe ChefFS::FileSystem::ChefServerRootDir do
     let(:endpoint) { root_dir.child('roles') }
 
     it_behaves_like 'a json rest endpoint dir'
-
-    it 'parent is root' do
-      endpoint.parent.should == root_dir
-    end
-    it 'has path /roles' do
-      endpoint.path.should == '/roles'
-    end
-    it 'has path_for_printing remote/roles' do
-      endpoint.path_for_printing.should == 'remote/roles'
-    end
   end
 end

@@ -33,6 +33,9 @@ describe ChefFS::FileSystem::CookbooksDir do
   it 'exists' do
     cookbooks_dir.exists?.should be_true
   end
+  it 'has name cookbooks' do
+    cookbooks_dir.name.should == 'cookbooks'
+  end
   it 'has path /cookbooks' do
     cookbooks_dir.path.should == '/cookbooks'
   end
@@ -76,9 +79,9 @@ describe ChefFS::FileSystem::CookbooksDir do
       segment_dir.children =~ %w(a.rb b.txt subdir)
     end
     it 'children are identical to child()' do
-      segment_dir.children.select { |child| child.name == 'a.rb' }.first.should == segment_dir.child('a.rb')
-      segment_dir.children.select { |child| child.name == 'b.txt' }.first.should == segment_dir.child('b.txt')
-      segment_dir.children.select { |child| child.name == 'subdir' }.first.should == segment_dir.child('subdir')
+      segment_dir.child('a.rb').should == segment_dir.children.select { |child| child.name == 'a.rb' }.first
+      segment_dir.child('b.txt').should == segment_dir.children.select { |child| child.name == 'b.txt' }.first
+      segment_dir.child('subdir').should == segment_dir.children.select { |child| child.name == 'subdir' }.first
     end
     context 'subdirectory' do
       it 'has segment as a parent' do
@@ -120,6 +123,9 @@ describe ChefFS::FileSystem::CookbooksDir do
     it 'exists' do
       should_list_cookbooks
       cookbook_dir.exists?.should be_true
+    end
+    it 'has name <cookbook name>' do
+      cookbook_dir.name.should == cookbook_dir_name
     end
     it 'has path /cookbooks/<cookbook name>' do
       cookbook_dir.path.should == "/cookbooks/#{cookbook_dir_name}"
@@ -230,17 +236,17 @@ describe ChefFS::FileSystem::CookbooksDir do
         should_get_cookbook
         file_checksums.each do |path, checksum|
           file = ChefFS::FileSystem.resolve_path(cookbook_dir, path)
-          if path.index('/')
-            if path.index('/', path.index('/') + 1)
-              file.parent.parent.parent.should == cookbook_dir
-            else
-              file.parent.parent.should == cookbook_dir
-            end
+          file_parts = path.split('/')
+          if file_parts.length == 3
+            file.parent.parent.parent.should == cookbook_dir
+          elsif file_parts.length == 2
+            file.parent.parent.should == cookbook_dir
           else
             file.parent.should == cookbook_dir
           end
           file.exists?.should be_true
           file.dir?.should be_false
+          file.name.should == file_parts[-1]
           file.path.should == "/cookbooks/#{cookbook_dir_name}/#{path}"
           file.path_for_printing.should == "remote/cookbooks/#{cookbook_dir_name}/#{path}"
           file.checksum.should == checksum
