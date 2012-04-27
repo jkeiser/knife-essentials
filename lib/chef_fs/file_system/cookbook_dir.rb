@@ -53,7 +53,7 @@ module ChefFS
             # Go through each file in the manifest for the segment, and
             # add cookbook subdirs and files for it.
             manifest[segment].each do |segment_file|
-              parts = segment_file['path'].split('/')
+              parts = segment_file[:path].split('/')
               # Get or create the path to the file
               container = self
               parts[0,parts.length-1].each do |part|

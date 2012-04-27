@@ -18,9 +18,9 @@ module ChefFS
         old_sign_on_redirect = rest.sign_on_redirect
         rest.sign_on_redirect = false
         begin
-          rest.get_rest(file['url'])
+          rest.get_rest(file[:url])
         ensure
-          rest.sign_on_redirect = true
+          rest.sign_on_redirect = old_sign_on_redirect
         end
       end
 
