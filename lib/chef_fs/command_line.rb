@@ -27,8 +27,8 @@ module ChefFS
           result << "Common subdirectories: #{old_file.path}\n"
         elsif new_file.exists?
           result << "File #{new_file.path_for_printing} is a directory while file #{new_file.path_for_printing} is a regular file\n"
-        else
-          result << "Only in #{old_file.parent.path_for_printing}: #{old_file.name}\n"
+        elsif new_file.parent.can_have_child?(old_file.name, old_file.dir?)
+          result << "Only in #{old_file.parent.path_for_printing}: #{old_file.name}\n" if new_file.parent.could_have_children?()
         end
 
       # If new is a directory and old does not exist
@@ -36,7 +36,7 @@ module ChefFS
       elsif new_file.dir?
         if old_file.exists?
           result << "File #{old_file.path_for_printing} is a regular file while file #{old_file.path_for_printing} is a directory\n"
-        else
+        elsif old_file.parent.can_have_child?(new_file.name, new_file.dir?)
           result << "Only in #{new_file.parent.path_for_printing}: #{new_file.name}\n"
         end
 
@@ -44,6 +44,15 @@ module ChefFS
         # Neither is a directory, so they are diffable with file diff
         different, old_value, new_value = ChefFS::Diff::diff_files(old_file, new_file)
         if different
+          # If one of the files doesn't exist, we only want to print the diff if the
+          # other file *could be synced*.
+          if !old_value && !old_file.parent.can_have_child?(new_file.name, new_file.dir?)
+            return result
+          end
+          if !new_value && !new_file.parent.can_have_child?(old_file.name, old_file.dir?)
+            return result
+          end
+
           old_path = old_file.path_for_printing
           new_path = new_file.path_for_printing
           result << "diff --knife #{old_path} #{new_path}\n"

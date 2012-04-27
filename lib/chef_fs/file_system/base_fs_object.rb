@@ -44,6 +44,17 @@ module ChefFS
         :text
       end
 
+      def child(name)
+        NonexistentFSObject.new(name, self)
+      end
+
+      # Override can_have_child? to report whether a given file *could* be added
+      # to this directory.  (Some directories can't have subdirs, some can only have .json
+      # files, etc.)
+      def can_have_child?(name, is_dir)
+        false
+      end
+
       # Important directory attributes: name, parent, path, root
       # Overridable attributes: dir?, child(name), path_for_printing
       # Abstract: read, write, delete, children

@@ -18,6 +18,10 @@ module ChefFS
         result || RestListEntry.new(name, self)
       end
 
+      def can_have_child?(name, is_dir)
+        name =~ /\.json$/ && !is_dir
+      end
+
       def children
         begin
           @children ||= rest.get_rest(api_path).keys.map { |key| RestListEntry.new("#{key}.json", self, true) }

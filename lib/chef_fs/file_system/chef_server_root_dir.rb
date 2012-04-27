@@ -32,6 +32,10 @@ module ChefFS
         @root_name
       end
 
+      def can_have_child?(name)
+        @children.any? { |child| child.name == name }
+      end
+
       def children
         @children ||= [
           RestListDir.new("clients", self),

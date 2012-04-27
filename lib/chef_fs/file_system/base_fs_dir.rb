@@ -17,6 +17,10 @@ module ChefFS
         children.select { |child| child.name == name }.first || NonexistentFSObject.new(name, self)
       end
 
+      def can_have_child?(name, is_dir)
+        true
+      end
+
       # Abstract: children
     end
   end

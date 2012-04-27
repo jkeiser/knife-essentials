@@ -16,6 +16,10 @@ module ChefFS
       def children
         @children ||= rest.get_rest(api_path).map { |key, value| CookbookDir.new(key, self, value) }
       end
+
+      def can_have_child?(name, is_dir)
+        is_dir
+      end
     end
   end
 end
