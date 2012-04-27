@@ -1,6 +1,7 @@
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbook_subdir'
 require 'chef_fs/file_system/cookbook_file'
+require 'chef/cookbook_version'
 
 module ChefFS
   module FileSystem
