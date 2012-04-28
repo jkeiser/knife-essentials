@@ -17,7 +17,7 @@ module ChefFS
       end
 
       def children
-        @children ||= Dir.entries(file_path).select { |entry| entry[0] != "." }.map { |entry| FileSystemEntry.new(entry, self) }
+        @children ||= Dir.entries(file_path).select { |entry| entry != '.' && entry != '..' }.map { |entry| FileSystemEntry.new(entry, self) }
       end
 
       def dir?
