@@ -107,7 +107,10 @@ module ChefFS
 
       def manifest
         # The negative (not found) response is cached
-        raise @could_not_get_manifest if @could_not_get_manifest
+        if @could_not_get_manifest
+          raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_manifest), "#{path_for_printing} not found"
+        end
+
         begin
           # We want to fail fast, for now, because of the 500 issue :/
           # This will make things worse for parallelism, a little.
@@ -120,8 +123,8 @@ module ChefFS
           end
         rescue Net::HTTPServerException
           if $!.response.code == "404"
-            @could_not_get_manifest = ChefFS::FileSystem::NotFoundError.new("#{path_for_printing} not found", $!)
-            raise @could_not_get_manifest
+            @could_not_get_manifest = $!
+            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_manifest), "#{path_for_printing} not found"
           else
             raise
           end
@@ -130,8 +133,8 @@ module ChefFS
         # Remove this when that bug is fixed.
         rescue Net::HTTPFatalError
           if $!.response.code == "500"
-            @could_not_get_manifest = ChefFS::FileSystem::NotFoundError.new("#{path_for_printing} not found (500)", $!)
-            raise @could_not_get_manifest
+            @could_not_get_manifest = $!
+            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_manifest), "#{path_for_printing} not found"
           else
             raise
           end
