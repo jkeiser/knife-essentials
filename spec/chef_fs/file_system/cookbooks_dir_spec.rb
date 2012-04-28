@@ -541,8 +541,8 @@ describe ChefFS::FileSystem::CookbooksDir do
       should_list_cookbooks
       nonexistent_child.dir?.should be_false
     end
-    it 'read returns NotFoundException' do
-      expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundException)
+    it 'read returns NotFoundError' do
+      expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundError)
     end
   end
 

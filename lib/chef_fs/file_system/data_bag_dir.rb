@@ -1,5 +1,6 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_entry'
+require 'chef_fs/file_system/not_found_error'
 
 # TODO: take environment into account
 
@@ -17,7 +18,7 @@ module ChefFS
 
       def read
         # This will only be called if dir? is false, which means exists? is false.
-        raise ChefFS::FileSystem::NotFoundException, path_for_printing
+        raise ChefFS::FileSystem::NotFoundError, "#{path_for_printing} not found"
       end
 
       def exists?

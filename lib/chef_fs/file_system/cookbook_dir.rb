@@ -1,6 +1,7 @@
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbook_subdir'
 require 'chef_fs/file_system/cookbook_file'
+require 'chef_fs/file_system/not_found_error'
 require 'chef/cookbook_version'
 
 module ChefFS
@@ -79,7 +80,7 @@ module ChefFS
 
       def read
         # This will only be called if dir? is false, which means exists? is false.
-        raise ChefFS::FileSystem::NotFoundException, path_for_printing
+        raise ChefFS::FileSystem::NotFoundError, path_for_printing
       end
 
       def exists?
@@ -101,7 +102,7 @@ module ChefFS
           @manifest ||= rest.get_rest(api_path).manifest
         rescue Net::HTTPServerException
           if $!.response.code == "404"
-            raise ChefFS::FileSystem::NotFoundException, $!
+            raise ChefFS::FileSystem::NotFoundError.new($!)
           else
             raise
           end

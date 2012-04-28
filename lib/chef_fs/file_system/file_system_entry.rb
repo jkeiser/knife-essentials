@@ -1,5 +1,6 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_dir'
+require 'chef_fs/file_system/not_found_error'
 require 'chef_fs/path_utils'
 
 module ChefFS
@@ -27,8 +28,8 @@ module ChefFS
       def read
         begin
           IO.read(file_path)
-        rescue IONotFoundException # TODO real exception
-          raise NotFoundException, $!
+        rescue IONotFoundError # TODO real exception
+          raise ChefFS::FileSystem::NotFoundError.new($!), "#{path_for_printing} not found"
         end
       end
     end

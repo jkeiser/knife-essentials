@@ -1,4 +1,5 @@
 require 'chef_fs/file_system/base_fs_object'
+require 'chef_fs/file_system/not_found_error'
 
 module ChefFS
   module FileSystem
@@ -12,7 +13,7 @@ module ChefFS
       end
 
       def read
-        raise ChefFS::FileSystem::NotFoundException, "Nonexistent object"
+        raise ChefFS::FileSystem::NotFoundError, "Nonexistent #{path_for_printing}"
       end
     end
   end

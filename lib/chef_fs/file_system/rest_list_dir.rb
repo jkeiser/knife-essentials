@@ -1,5 +1,6 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_entry'
+require 'chef_fs/file_system/not_found_error'
 
 # TODO: take environment into account
 
@@ -27,7 +28,7 @@ module ChefFS
           @children ||= rest.get_rest(api_path).keys.map { |key| RestListEntry.new("#{key}.json", self, true) }
         rescue Net::HTTPServerException
           if $!.response.code == "404"
-            raise ChefFS::FileSystem::NotFoundException, $!
+            raise ChefFS::FileSystem::NotFoundError.new($!), "#{path_for_printing} not found"
           else
             raise
           end

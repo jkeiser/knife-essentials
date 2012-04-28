@@ -154,9 +154,9 @@ describe ChefFS::FileSystem::DataBagsDir do
       it 'is not a directory' do
         nonexistent_child.dir?.should be_false
       end
-      it 'read returns NotFoundException' do
+      it 'read returns NotFoundError' do
         @rest.should_receive(:get_rest).with("data/#{data_bag_dir_name}/blah/environments/env").once.and_raise(Net::HTTPServerException.new(nil,Net::HTTPResponse.new(nil,'404',nil)))
-        expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundException)
+        expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundError)
       end
     end
   end
@@ -194,8 +194,8 @@ describe ChefFS::FileSystem::DataBagsDir do
       should_list_data_bags
       nonexistent_child.dir?.should be_false
     end
-    it 'read returns NotFoundException' do
-      expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundException)
+    it 'read returns NotFoundError' do
+      expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundError)
     end
   end
 

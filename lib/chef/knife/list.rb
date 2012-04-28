@@ -52,7 +52,7 @@ class Chef
       def add_dir_result(result)
         begin
           children = result.children.sort_by { |child| child.name }
-        rescue ChefFS::FileSystem::NotFoundException
+        rescue ChefFS::FileSystem::NotFoundError
           STDERR.puts "#{format_path(result.path)}: No such file or directory"
           return []
         end

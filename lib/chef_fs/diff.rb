@@ -149,7 +149,7 @@ module ChefFS
     def self.read_file_value(file)
       begin
         return file.read
-      rescue ChefFS::FileSystem::NotFoundException
+      rescue ChefFS::FileSystem::NotFoundError
         return nil
       end
     end

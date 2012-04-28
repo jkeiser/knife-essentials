@@ -17,7 +17,7 @@ class Chef
                 value = result.read
                 puts "#{format_path(result.path)}:"
                 output(format_for_display(result.read))
-              rescue ChefFS::FileSystem::NotFoundException
+              rescue ChefFS::FileSystem::NotFoundError
                 STDERR.puts "#{format_path(result.path)}: No such file or directory" if pattern.exact_path
               end
             end
