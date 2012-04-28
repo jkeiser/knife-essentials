@@ -26,11 +26,13 @@ describe ChefFS::Diff do
         :both_dirs_empty => {},
         :dirs_empty_in_a_filled_in_b => {},
         :dirs_empty_in_b_filled_in_a => { :subsub => nil },
+        :dirs_in_a_cannot_be_in_b => {},
+        :file_in_a_cannot_be_in_b => nil,
 				:a_only_dir => { :subsub => nil },
 				:a_only_file => nil,
 				:dir_in_a_file_in_b => {},
 				:file_in_a_dir_in_b => nil
-			})
+			}, /cannot_be_in_a/)
 		}
 		let(:b) {
 			memory_fs('b', {
@@ -51,11 +53,13 @@ describe ChefFS::Diff do
 				:both_dirs_empty => {},
         :dirs_empty_in_a_filled_in_b => { :subsub => nil },
         :dirs_empty_in_b_filled_in_a => {},
+        :dirs_in_b_cannot_be_in_a => {},
+        :file_in_b_cannot_be_in_a => nil,
 				:b_only_dir => { :subsub => nil },
 				:b_only_file => nil,
 				:dir_in_a_file_in_b => nil,
 				:file_in_a_dir_in_b => {}
-			})
+			}, /cannot_be_in_b/)
 		}
 		it 'diffable_leaves' do
 			diffable_leaves_should_yield_paths(a, b, nil,
@@ -75,6 +79,10 @@ describe ChefFS::Diff do
           /both_files_different
           /dirs_empty_in_b_filled_in_a/subsub
           /dirs_empty_in_a_filled_in_b/subsub
+          /dirs_in_a_cannot_be_in_b
+          /dirs_in_b_cannot_be_in_a
+          /file_in_a_cannot_be_in_b
+          /file_in_b_cannot_be_in_a
           /a_only_dir
           /a_only_file
           /b_only_dir
@@ -94,6 +102,8 @@ describe ChefFS::Diff do
           /both_dirs/sub_file_in_a_dir_in_b
           /both_files
           /both_files_different
+          /file_in_a_cannot_be_in_b
+          /file_in_b_cannot_be_in_a
           /a_only_file
           /b_only_file
           /dir_in_a_file_in_b
@@ -116,6 +126,8 @@ describe ChefFS::Diff do
           /both_dirs/sub_file_in_a_dir_in_b
           /dirs_empty_in_b_filled_in_a/subsub
           /dirs_empty_in_a_filled_in_b/subsub
+          /dirs_in_a_cannot_be_in_b
+          /dirs_in_b_cannot_be_in_a
           /a_only_dir
           /b_only_dir
           /dir_in_a_file_in_b

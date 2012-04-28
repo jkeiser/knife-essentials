@@ -25,24 +25,30 @@ module FileSystemSupport
 		def add_child(child)
 			@children.push(child)
 		end
+		def can_have_child?(name, is_dir)
+			root.cannot_be_in_regex ? (name !~ root.cannot_be_in_regex) : true
+		end
 	end
 
 	class MemoryRoot < MemoryDir
-		def initialize(pretty_name)
+		def initialize(pretty_name, cannot_be_in_regex = nil)
 			super('', nil)
 			@pretty_name = pretty_name
+			@cannot_be_in_regex = cannot_be_in_regex
 		end
+
+		attr_reader :cannot_be_in_regex
 
 		def path_for_printing
 			@pretty_name
 		end
 	end
 
-	def memory_fs(pretty_name, value)
+	def memory_fs(pretty_name, value, cannot_be_in_regex = nil)
 		if !value.is_a?(Hash)
 			raise "memory_fs() must take a Hash"
 		end
-		dir = MemoryRoot.new(pretty_name)
+		dir = MemoryRoot.new(pretty_name, cannot_be_in_regex)
 		value.each do |key, child|
 			dir.add_child(memory_fs_value(child, key.to_s, dir))
 		end
