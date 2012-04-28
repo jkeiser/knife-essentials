@@ -35,7 +35,15 @@ module ChefFS
       end
 
       def child(name)
-        children.select { |child| child.name == name }.first || NonexistentFSObject.new(name, self)
+        # Since we're ignoring the rules and doing a network request here,
+        # we need to make sure we don't rethrow the exception.  (child(name)
+        # is not supposed to fail.)
+        begin
+          result = children.select { |child| child.name == name }.first
+          return result if result
+        rescue ChefFS::FileSystem::NotFoundError
+        end
+        return NonexistentFSObject.new(name, self)
       end
 
       def can_have_child?(name, is_dir)
@@ -98,11 +106,32 @@ module ChefFS
       private
 
       def manifest
+        # The negative (not found) response is cached
+        raise @could_not_get_manifest if @could_not_get_manifest
         begin
-          @manifest ||= rest.get_rest(api_path).manifest
+          # We want to fail fast, for now, because of the 500 issue :/
+          # This will make things worse for parallelism, a little.
+          old_retry_count = Chef::Config[:http_retry_count]
+          begin
+            Chef::Config[:http_retry_count] = 0
+            @manifest ||= rest.get_rest(api_path).manifest
+          ensure
+            Chef::Config[:http_retry_count] = old_retry_count
+          end
         rescue Net::HTTPServerException
           if $!.response.code == "404"
-            raise ChefFS::FileSystem::NotFoundError.new($!)
+            @could_not_get_manifest = ChefFS::FileSystem::NotFoundError.new("#{path_for_printing} not found", $!)
+            raise @could_not_get_manifest
+          else
+            raise
+          end
+
+        # Chef bug http://tickets.opscode.com/browse/CHEF-3066 ... instead of 404 we get 500 right now.
+        # Remove this when that bug is fixed.
+        rescue Net::HTTPFatalError
+          if $!.response.code == "500"
+            @could_not_get_manifest = ChefFS::FileSystem::NotFoundError.new("#{path_for_printing} not found (500)", $!)
+            raise @could_not_get_manifest
           else
             raise
           end
