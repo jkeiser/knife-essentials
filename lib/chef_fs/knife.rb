@@ -1,5 +1,5 @@
 require 'chef_fs/file_system/chef_server_root_dir'
-require 'chef_fs/file_system/file_system_root_dir'
+require 'chef_fs/file_system/chef_repository_file_system_root_dir'
 require 'chef_fs/file_pattern'
 require 'chef_fs/path_utils'
 require 'chef/config'
@@ -32,7 +32,7 @@ module ChefFS
     end
 
     def local_fs
-      @local_fs ||= ChefFS::FileSystem::FileSystemRootDir.new(chef_repo)
+      @local_fs ||= ChefFS::FileSystem::ChefRepositoryFileSystemRootDir.new(chef_repo)
     end
 
     def pattern_args
