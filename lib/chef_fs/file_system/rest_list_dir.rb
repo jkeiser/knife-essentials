@@ -16,7 +16,7 @@ module ChefFS
 
       def child(name)
         result = @children.select { |child| child.name == name }.first if @children
-        result || RestListEntry.new(name, self)
+        result ||= can_have_child?(name, false) ? RestListEntry.new(name, self) : NonexistentFSObject.new(name, self)
       end
 
       def can_have_child?(name, is_dir)

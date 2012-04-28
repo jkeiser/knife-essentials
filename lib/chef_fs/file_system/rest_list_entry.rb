@@ -14,8 +14,8 @@ module ChefFS
       end
 
       def api_path
-        if name.length < 5 && name[-5,5] != ".json"
-          raise "Invalid name #{name}: must include .json"
+        if name.length < 5 || name[-5,5] != ".json"
+          raise "Invalid name #{path}: must end in .json"
         end
         api_child_name = name[0,name.length-5]
         environment ? "#{parent.api_path}/#{api_child_name}/environments/#{environment}" : "#{parent.api_path}/#{api_child_name}"
