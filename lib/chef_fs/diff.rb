@@ -12,7 +12,7 @@ module ChefFS
       Digest::MD5.hexdigest(value)
     end
 
-    def self.diff_files(old_file, new_file)
+    def self.diff_files_quick(old_file, new_file)
       #
       # Short-circuit expensive comparison (could be an extra network
       # request) if a pre-calculated checksum is there
@@ -42,7 +42,16 @@ module ChefFS
         end
 
         # If the checksums are the same, they are the same.  Return.
-        return false if old_checksum == new_checksum
+        return [ false, old_value, new_value ] if old_checksum == new_checksum
+      end
+
+      return [ nil, old_value, new_value ]
+    end
+
+    def self.diff_files(old_file, new_file)
+      different, old_value, new_value = diff_files_quick(old_file, new_file)
+      if different != nil
+        return different
       end
 
       #
@@ -87,8 +96,8 @@ module ChefFS
       ChefFS::FileSystem.list(a_root, pattern) do |a|
         found_paths << a.path
         b = ChefFS::FileSystem.resolve_path(b_root, a.path)
-        diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf|
-          yield [ a_leaf, b_leaf ]
+        diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf, leaf_recurse_depth|
+          yield [ a_leaf, b_leaf, leaf_recurse_depth ]
         end
       end
 
@@ -97,7 +106,7 @@ module ChefFS
       ChefFS::FileSystem.list(b_root, pattern) do |b|
         if !found_paths.include?(b.path)
           a = ChefFS::FileSystem.resolve_path(a_root, b.path)
-          yield [ a, b ]
+          yield [ a, b, recurse_depth ]
         end
       end
     end
@@ -126,15 +135,15 @@ module ChefFS
         a_children_names = Set.new
         a.children.each do |a_child|
           a_children_names << a_child.name
-          diffable_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf|
-            yield [ a_leaf, b_leaf ]
+          diffable_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf, leaf_recurse_depth|
+            yield [ a_leaf, b_leaf, leaf_recurse_depth ]
           end
         end
 
         # Check b for children that aren't in a
         b.children.each do |b_child|
           if !a_children_names.include?(b_child.name)
-            yield [ a.child(b_child.name), b_child ]
+            yield [ a.child(b_child.name), b_child, recurse_depth ]
           end
         end
         return
