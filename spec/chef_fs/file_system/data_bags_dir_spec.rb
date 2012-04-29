@@ -6,8 +6,7 @@ describe ChefFS::FileSystem::DataBagsDir do
     {
       :chef_server_url => 'url',
       :node_name => 'username',
-      :client_key => 'key',
-      :environment => 'env'
+      :client_key => 'key'
     })
   }
   let(:data_bags_dir) { root_dir.child('data_bags') }
@@ -73,7 +72,7 @@ describe ChefFS::FileSystem::DataBagsDir do
       data_bag_item.path_for_printing.should == "remote/data_bags/#{data_bag_dir_name}/#{data_bag_item_name}"
     end
     it 'reads correctly' do
-      @rest.should_receive(:get_rest).with("data/#{data_bag_dir_name}/#{data_bag_item_short_name}/environments/env").once.and_return({
+      @rest.should_receive(:get_rest).with("data/#{data_bag_dir_name}/#{data_bag_item_short_name}").once.and_return({
         'a' => 'b'
       })
       data_bag_item.read.should == '{
@@ -155,7 +154,7 @@ describe ChefFS::FileSystem::DataBagsDir do
         nonexistent_child.dir?.should be_false
       end
       it 'read returns NotFoundError' do
-        @rest.should_receive(:get_rest).with("data/#{data_bag_dir_name}/blah/environments/env").once.and_raise(Net::HTTPServerException.new(nil,Net::HTTPResponse.new(nil,'404',nil)))
+        @rest.should_receive(:get_rest).with("data/#{data_bag_dir_name}/blah").once.and_raise(Net::HTTPServerException.new(nil,Net::HTTPResponse.new(nil,'404',nil)))
         expect { nonexistent_child.read }.to raise_error(ChefFS::FileSystem::NotFoundError)
       end
     end

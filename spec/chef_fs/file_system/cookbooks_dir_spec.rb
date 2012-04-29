@@ -7,8 +7,7 @@ describe ChefFS::FileSystem::CookbooksDir do
     {
       :chef_server_url => 'url',
       :node_name => 'username',
-      :client_key => 'key',
-      :environment => 'env'
+      :client_key => 'key'
     })
   }
   let(:cookbooks_dir) { root_dir.child('cookbooks') }
