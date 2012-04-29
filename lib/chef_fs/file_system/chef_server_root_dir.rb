@@ -53,7 +53,6 @@ module ChefFS
               NodesDir.new(self)
             ]
           end
-          puts result.map { |child| child.name }.inspect
           result.sort_by { |child| child.name }
         end
       end
