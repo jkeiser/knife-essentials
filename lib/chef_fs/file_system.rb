@@ -3,10 +3,6 @@ require 'chef_fs/diff'
 
 module ChefFS
   module FileSystem
-    def self.copy_to(pattern, src_root, dest_root)
-
-    end
-
     # Yields a list of all things under (and including) this entry that match the
     # given pattern.
     #
