@@ -6,12 +6,19 @@ require 'chef/config'
 
 module ChefFS
   class Knife < Chef::Knife
+    def self.common_options
+      option :repo_mode,
+        :long => '--repo-mode MODE',
+        :default => "default",
+        :description => "Specifies the local repository layout.  Values: default or full"
+    end
+
     def base_path
       @base_path ||= "/" + ChefFS::PathUtils::relative_to(File.absolute_path(Dir.pwd), chef_repo)
     end
 
     def chef_fs
-      @chef_fs ||= ChefFS::FileSystem::ChefServerRootDir.new("remote", Chef::Config)
+      @chef_fs ||= ChefFS::FileSystem::ChefServerRootDir.new("remote", Chef::Config, config[:repo_mode])
     end
 
     def chef_repo

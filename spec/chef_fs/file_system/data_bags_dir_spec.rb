@@ -7,7 +7,7 @@ describe ChefFS::FileSystem::DataBagsDir do
       :chef_server_url => 'url',
       :node_name => 'username',
       :client_key => 'key'
-    })
+    }, 'everything')
   }
   let(:data_bags_dir) { root_dir.child('data_bags') }
   let(:should_list_data_bags) do

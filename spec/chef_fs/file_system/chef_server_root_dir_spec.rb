@@ -113,7 +113,7 @@ describe ChefFS::FileSystem::ChefServerRootDir do
       :chef_server_url => 'url',
       :node_name => 'username',
       :client_key => 'key'
-    })
+    }, 'everything')
   }
   before(:each) do
     @rest = double("rest")

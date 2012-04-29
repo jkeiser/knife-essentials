@@ -7,12 +7,13 @@ require 'chef_fs/file_system/nodes_dir'
 module ChefFS
   module FileSystem
     class ChefServerRootDir < BaseFSDir
-      def initialize(root_name, config)
+      def initialize(root_name, chef_config, repo_mode)
         super("", nil)
-        @chef_server_url = config[:chef_server_url]
-        @chef_username = config[:node_name]
-        @chef_private_key = config[:client_key]
-        @environment = config[:environment]
+        @chef_server_url = chef_config[:chef_server_url]
+        @chef_username = chef_config[:node_name]
+        @chef_private_key = chef_config[:client_key]
+        @environment = chef_config[:environment]
+        @repo_mode = repo_mode
         @root_name = root_name
       end
 
@@ -20,6 +21,7 @@ module ChefFS
       attr_reader :chef_username
       attr_reader :chef_private_key
       attr_reader :environment
+      attr_reader :repo_mode
 
       def rest
         Chef::REST.new(chef_server_url, chef_username, chef_private_key)
@@ -38,15 +40,22 @@ module ChefFS
       end
 
       def children
-        @children ||= [
-          RestListDir.new("clients", self),
-          CookbooksDir.new(self),
-          DataBagsDir.new(self),
-          RestListDir.new("environments", self),
-          NodesDir.new(self),
-          RestListDir.new("roles", self),
-  #        RestListDir.new("sandboxes", self)
-        ]
+        @children ||= begin
+          result = [
+            CookbooksDir.new(self),
+            DataBagsDir.new(self),
+            RestListDir.new("environments", self),
+            RestListDir.new("roles", self)
+          ]
+          if repo_mode == 'everything'
+            result += [
+              RestListDir.new("clients", self),
+              NodesDir.new(self)
+            ]
+          end
+          puts result.map { |child| child.name }.inspect
+          result.sort_by { |child| child.name }
+        end
       end
     end
   end

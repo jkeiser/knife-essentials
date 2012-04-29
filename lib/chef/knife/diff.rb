@@ -12,6 +12,8 @@ class Chef
         :default => true,
         :description => "List directories recursively."
 
+      common_options
+
       def run
         patterns = pattern_args_from(name_args.length > 0 ? name_args : [ "" ])
 
