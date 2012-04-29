@@ -121,16 +121,18 @@ module ChefFS
         if purge
           # If we would not have uploaded it, we will not purge it.
           if src_entry.parent.can_have_child?(dest_entry.name, dest_entry.dir?)
-            Chef::Log.info("Deleting extra entry #{dest_entry.path_for_printing} (purge is on)")
             dest_entry.delete
+            puts "Delete extra entry #{dest_entry.path_for_printing} (purge is on)"
+          else
+            Chef::Log.info("Not deleting extra entry #{dest_entry.path_for_printing} (purge is off)")
           end
         end
 
       elsif !dest_entry.exists?
         if dest_entry.parent.can_have_child?(src_entry.name, src_entry.dir?)
           if src_entry.dir?
-            Chef::Log.info("Creating #{dest_entry.path_for_printing}/")
             new_dest_dir = dest_entry.parent.create_child(src_entry.name, nil)
+            puts "Created #{dest_entry.path_for_printing}/"
             # Directory creation is recursive.
             if recurse_depth != 0
               src_entry.children.each do |src_child|
@@ -139,8 +141,8 @@ module ChefFS
               end
             end
           else
-            Chef::Log.info("Creating #{dest_entry.path_for_printing}")
             dest_entry.parent.create_child(src_entry.name, src_entry.read)
+            puts "Created #{dest_entry.path_for_printing}"
           end
         end
 
@@ -163,9 +165,9 @@ module ChefFS
             # Both are files!  Copy them unless we're sure they are the same.
             different, src_value, dest_value = ChefFS::Diff.diff_files_quick(src_entry, dest_entry)
             if different || different == nil
-              Chef::Log.info("Copying #{src_entry.path_for_printing} to #{dest_entry.path_for_printing}")
               src_value = src_entry.read if src_value == :not_retrieved
               dest_entry.write(src_value)
+              puts "Updated #{dest_entry.path_for_printing}"
             end
           end
         end
