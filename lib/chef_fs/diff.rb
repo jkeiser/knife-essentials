@@ -61,20 +61,20 @@ module ChefFS
       new_value = read_file_value(new_file) if new_value == :not_retrieved
 
       return false if old_value == new_value
-      return false if old_value && new_value && !context_aware_diff(old_file, new_file, old_value, new_value)
+      return false if old_value && new_value && context_aware_diff(old_file, new_file, old_value, new_value) == false
       return [ true, old_value, new_value ]
     end
 
     def self.context_aware_diff(old_file, new_file, old_value, new_value)
-      # TODO handle errors in reading JSON
       if old_file.content_type == :json || new_file.content_type == :json
-        new_value = Chef::JSONCompat.from_json(new_value).to_hash
-        old_value = Chef::JSONCompat.from_json(old_value).to_hash
-
-        old_value != new_value
-      else
-        true
+        begin
+          new_value = Chef::JSONCompat.from_json(new_value).to_hash
+          old_value = Chef::JSONCompat.from_json(old_value).to_hash
+          return old_value != new_value
+        rescue JSON::ParserError
+        end
       end
+      return nil
     end
 
     # Gets all common leaves, recursively, starting from the results of
