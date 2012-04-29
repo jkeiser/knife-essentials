@@ -59,8 +59,8 @@ module ChefFS
     def self.context_aware_diff(old_file, new_file, old_value, new_value)
       # TODO handle errors in reading JSON
       if old_file.content_type == :json || new_file.content_type == :json
-        new_value = Chef::JSONCompat.from_json(new_value)
-        old_value = Chef::JSONCompat.from_json(old_value)
+        new_value = Chef::JSONCompat.from_json(new_value).to_hash
+        old_value = Chef::JSONCompat.from_json(old_value).to_hash
 
         old_value != new_value
       else
