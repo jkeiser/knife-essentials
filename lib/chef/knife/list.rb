@@ -6,6 +6,8 @@ class Chef
     class List < ChefFS::Knife
       banner "list [-dR] [PATTERN1 ... PATTERNn]"
 
+      common_options
+
       option :recursive,
         :short => '-R',
         :boolean => true,

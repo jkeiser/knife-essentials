@@ -6,6 +6,8 @@ class Chef
     class Show < ChefFS::Knife
       banner "show [PATTERN1 ... PATTERNn]"
 
+      common_options
+
       def run
         # Get the matches (recursively)
         pattern_args.each do |pattern|

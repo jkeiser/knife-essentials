@@ -6,6 +6,8 @@ class Chef
     class Download < ChefFS::Knife
       banner "download PATTERNS"
 
+      common_options
+
       option :recurse,
         :long => '--[no-]recurse',
         :boolean => true,

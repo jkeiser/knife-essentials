@@ -6,6 +6,8 @@ class Chef
     class Diff < ChefFS::Knife
       banner "diff PATTERNS"
 
+      common_options
+
       option :recurse,
         :long => '--[no-]recurse',
         :boolean => true,
@@ -21,8 +23,6 @@ class Chef
         :long => '--name-status',
         :boolean => true,
         :description => "Only show names and statuses of modified files: Added, Deleted, Modified, and Type Changed."
-
-      common_options
 
       def run
         if config[:name_only]
