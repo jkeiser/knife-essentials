@@ -7,6 +7,7 @@ to manipulate Chef using a common set of verbs that work on *everything*
 that is stored in the Chef server.
 
    knife diff cookbooks/*apache*
+   knife download roles data_bags cookbooks/emacs
    knife list data_bags/users
    knife show roles/*base*
 
@@ -53,6 +54,7 @@ This plugin builds a Ruby Gem (but has not yet been released to RubyGems).  To i
 chef_fs installs a number of useful knife verbs, including:
 
     knife diff [pattern1 pattern2 ...]
+    knife download [pattern1 pattern2 ...]
     knife list [pattern1 pattern2 ...]
     knife show [pattern2 pattern2 ...]
 
@@ -80,6 +82,13 @@ To run the knife plugin functionality, install a version of Chef > 0.10.10:
 
 Diffs objects on the server against files in the local repository.  Output is similar to
 +git diff+.
+
+== knife download
+
+    knife download [pattern1 pattern2 ...]
+
+Downloads objects from the server to your local repository.  Pass --purge to delete local
+files and directories which do not exist on the server.
 
 == knife list
 
