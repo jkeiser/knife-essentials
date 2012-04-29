@@ -1,7 +1,5 @@
 require 'chef_fs/file_system/base_fs_dir'
 
-# TODO: take environment into account
-
 module ChefFS
   module FileSystem
     class CookbookSubdir < BaseFSDir
