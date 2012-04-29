@@ -12,14 +12,30 @@ class Chef
         :default => true,
         :description => "List directories recursively."
 
+      option :name_only,
+        :long => '--name-only',
+        :boolean => true,
+        :description => "Only show names of modified files."
+
+      option :name_status,
+        :long => '--name-status',
+        :boolean => true,
+        :description => "Only show names and statuses of modified files: Added, Deleted, Modified, and Type Changed."
+
       common_options
 
       def run
+        if config[:name_only]
+          output_mode = :name_only
+        end
+        if config[:name_status]
+          output_mode = :name_status
+        end
         patterns = pattern_args_from(name_args.length > 0 ? name_args : [ "" ])
 
         # Get the matches (recursively)
         patterns.each do |pattern|
-          ChefFS::CommandLine.diff(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1) do |diff|
+          ChefFS::CommandLine.diff(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1, output_mode) do |diff|
             puts diff
           end
         end

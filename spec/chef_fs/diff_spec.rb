@@ -136,7 +136,7 @@ describe ChefFS::Diff do
     end
     it 'ChefFS::CommandLine.diff(/)' do
       results = []
-      ChefFS::CommandLine.diff(pattern('/'), a, b, nil) do |diff|
+      ChefFS::CommandLine.diff(pattern('/'), a, b, nil, nil) do |diff|
         results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
       end
       results.should =~ [
@@ -212,7 +212,7 @@ new file
     end
     it 'ChefFS::CommandLine.diff(/both_dirs)' do
       results = []
-      ChefFS::CommandLine.diff(pattern('/both_dirs'), a, b, nil) do |diff|
+      ChefFS::CommandLine.diff(pattern('/both_dirs'), a, b, nil, nil) do |diff|
         results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
       end
       results.should =~ [
@@ -254,7 +254,7 @@ new file
     end
     it 'ChefFS::CommandLine.diff(/) with depth 1' do
       results = []
-      ChefFS::CommandLine.diff(pattern('/'), a, b, 1) do |diff|
+      ChefFS::CommandLine.diff(pattern('/'), a, b, 1, nil) do |diff|
         results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
       end
       results.should =~ [
@@ -288,7 +288,7 @@ new file
     end
     it 'ChefFS::CommandLine.diff(/*_*) with depth 0' do
       results = []
-      ChefFS::CommandLine.diff(pattern('/*_*'), a, b, 0) do |diff|
+      ChefFS::CommandLine.diff(pattern('/*_*'), a, b, 0, nil) do |diff|
         results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
       end
       results.should =~ [
@@ -319,6 +319,58 @@ new file
 @@ -0,0 +1 @@
 +b_only_file
 ' ]
+    end
+    it 'ChefFS::CommandLine.diff(/) in name-only mode' do
+      results = []
+      ChefFS::CommandLine.diff(pattern('/'), a, b, nil, :name_only) do |diff|
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+      end
+      results.should =~ [
+          "b/both_dirs/sub_both_files_different\n",
+          "b/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub\n",
+          "b/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub\n",
+          "b/both_dirs/sub_a_only_dir\n",
+          "b/both_dirs/sub_a_only_file\n",
+          "b/both_dirs/sub_b_only_dir\n",
+          "b/both_dirs/sub_b_only_file\n",
+          "b/both_dirs/sub_dir_in_a_file_in_b\n",
+          "b/both_dirs/sub_file_in_a_dir_in_b\n",
+          "b/both_files_different\n",
+          "b/dirs_empty_in_b_filled_in_a/subsub\n",
+          "b/dirs_empty_in_a_filled_in_b/subsub\n",
+          "b/a_only_dir\n",
+          "b/a_only_file\n",
+          "b/b_only_dir\n",
+          "b/b_only_file\n",
+          "b/dir_in_a_file_in_b\n",
+          "b/file_in_a_dir_in_b\n"
+      ]
+    end
+    it 'ChefFS::CommandLine.diff(/) in name-status mode' do
+      results = []
+      ChefFS::CommandLine.diff(pattern('/'), a, b, nil, :name_status) do |diff|
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+      end
+      results.should =~ [
+          "M\tb/both_dirs/sub_both_files_different\n",
+          "D\tb/both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub\n",
+          "A\tb/both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub\n",
+          "D\tb/both_dirs/sub_a_only_dir\n",
+          "D\tb/both_dirs/sub_a_only_file\n",
+          "A\tb/both_dirs/sub_b_only_dir\n",
+          "A\tb/both_dirs/sub_b_only_file\n",
+          "T\tb/both_dirs/sub_dir_in_a_file_in_b\n",
+          "T\tb/both_dirs/sub_file_in_a_dir_in_b\n",
+          "M\tb/both_files_different\n",
+          "D\tb/dirs_empty_in_b_filled_in_a/subsub\n",
+          "A\tb/dirs_empty_in_a_filled_in_b/subsub\n",
+          "D\tb/a_only_dir\n",
+          "D\tb/a_only_file\n",
+          "A\tb/b_only_dir\n",
+          "A\tb/b_only_file\n",
+          "T\tb/dir_in_a_file_in_b\n",
+          "T\tb/file_in_a_dir_in_b\n"
+      ]
     end
   end
 end
