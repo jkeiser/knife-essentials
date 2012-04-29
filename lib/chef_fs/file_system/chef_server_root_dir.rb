@@ -1,7 +1,8 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_dir'
-require 'chef_fs/file_system/data_bags_dir'
 require 'chef_fs/file_system/cookbooks_dir'
+require 'chef_fs/file_system/data_bags_dir'
+require 'chef_fs/file_system/nodes_dir'
 
 module ChefFS
   module FileSystem
@@ -42,7 +43,7 @@ module ChefFS
           CookbooksDir.new(self),
           DataBagsDir.new(self),
           RestListDir.new("environments", self),
-          RestListDir.new("nodes", self),
+          NodesDir.new(self),
           RestListDir.new("roles", self),
   #        RestListDir.new("sandboxes", self)
         ]

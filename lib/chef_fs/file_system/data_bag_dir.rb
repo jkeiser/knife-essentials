@@ -2,8 +2,6 @@ require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_entry'
 require 'chef_fs/file_system/not_found_error'
 
-# TODO: take environment into account
-
 module ChefFS
   module FileSystem
     class DataBagDir < RestListDir

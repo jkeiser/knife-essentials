@@ -1,8 +1,6 @@
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/data_bag_dir'
 
-# TODO: take environment into account
-
 module ChefFS
   module FileSystem
     class DataBagsDir < RestListDir

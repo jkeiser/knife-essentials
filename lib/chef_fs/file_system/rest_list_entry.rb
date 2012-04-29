@@ -1,10 +1,8 @@
 require 'chef_fs/file_system/base_fs_object'
 require 'chef_fs/file_system/not_found_error'
-# TODO: these are needed for rest.get_rest() to work.  This seems strange.
 require 'chef/role'
 require 'chef/node'
 
-# TODO: take environment into account
 module ChefFS
   module FileSystem
     class RestListEntry < BaseFSObject
@@ -18,7 +16,7 @@ module ChefFS
           raise "Invalid name #{path}: must end in .json"
         end
         api_child_name = name[0,name.length-5]
-        environment ? "#{parent.api_path}/#{api_child_name}/environments/#{environment}" : "#{parent.api_path}/#{api_child_name}"
+        "#{parent.api_path}/#{api_child_name}"
       end
 
       def environment
