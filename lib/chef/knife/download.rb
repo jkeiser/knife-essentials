@@ -26,12 +26,19 @@ class Chef
         :default => false,
         :description => "Force upload of files even if they match (quicker and harmless, but doesn't print out what it changed)"
 
+      option :dry_run,
+        :long => '--dry-run',
+        :short => '-n',
+        :boolean => true,
+        :default => false,
+        :description => "Don't take action, only print what would happen"
+
       def run
         patterns = pattern_args_from(name_args.length > 0 ? name_args : [ "" ])
 
         # Get the matches (recursively)
         patterns.each do |pattern|
-          ChefFS::FileSystem.copy_to(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1, config[:purge], config[:force])
+          ChefFS::FileSystem.copy_to(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1, config)
         end
       end
     end

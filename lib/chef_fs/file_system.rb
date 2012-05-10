@@ -78,20 +78,26 @@ module ChefFS
     # * +dest_root+ - the root to which things will be copied
     # * +recurse_depth+ - the maximum depth to copy things. +nil+
     #   means infinite depth.  0 means no recursion.
-    # * +purge+ - if +true+, items in +dest+ that are not in +src+
+    # * +options+ - hash of options:
+    #   - +purge+ - if +true+, items in +dest+ that are not in +src+
     #   will be deleted from +dest+.  If +false+, these items will
     #   be left alone.
+    #   - +force+ - if +true+, matching files are always copied from
+    #     +src+ to +dest+.  If +false+, they will only be copied if
+    #     actually different (which will take time to determine).
+    #   - +dry_run+ - if +true+, action will not actually be taken;
+    #     things will be printed out instead.
     #
     # ==== Examples
     #
     #     ChefFS::FileSystem.copy_to(FilePattern.new('/cookbooks', chef_fs, local_fs, nil, true)
     #
-    def self.copy_to(pattern, src_root, dest_root, recurse_depth, purge, force)
+    def self.copy_to(pattern, src_root, dest_root, recurse_depth, options)
       found_result = false
       # Find things we might want to copy
       ChefFS::Diff::diffable_leaves_from_pattern(pattern, src_root, dest_root, recurse_depth) do |src_leaf, dest_leaf, child_recurse_depth|
         found_result = true
-        copy_leaves(src_leaf, dest_leaf, child_recurse_depth, purge, force)
+        copy_leaves(src_leaf, dest_leaf, child_recurse_depth, options)
       end
       if !found_result && pattern.exact_path
         yield "#{pattern}: No such file or directory on remote or local"
@@ -101,7 +107,7 @@ module ChefFS
     private
 
     # Copy two known leaves (could be files or dirs)
-    def self.copy_leaves(src_entry, dest_entry, recurse_depth, purge, force)
+    def self.copy_leaves(src_entry, dest_entry, recurse_depth, options)
       # A NOTE about this algorithm:
       # There are cases where this algorithm does too many network requests.
       # knife upload with a specific filename will first check if the file
@@ -114,11 +120,15 @@ module ChefFS
       # Will need to decide how that works with checksums, though.
 
       if !src_entry.exists?
-        if purge
+        if options[:purge]
           # If we would not have uploaded it, we will not purge it.
           if src_entry.parent.can_have_child?(dest_entry.name, dest_entry.dir?)
-            dest_entry.delete
-            puts "Delete extra entry #{dest_entry.path_for_printing} (purge is on)"
+            if options[:dry_run]
+              puts "Would delete #{dest_entry.path_for_printing}"
+            else
+              dest_entry.delete
+              puts "Delete extra entry #{dest_entry.path_for_printing} (purge is on)"
+            end
           else
             Chef::Log.info("Not deleting extra entry #{dest_entry.path_for_printing} (purge is off)")
           end
@@ -127,18 +137,27 @@ module ChefFS
       elsif !dest_entry.exists?
         if dest_entry.parent.can_have_child?(src_entry.name, src_entry.dir?)
           if src_entry.dir?
-            new_dest_dir = dest_entry.parent.create_child(src_entry.name, nil)
-            puts "Created #{dest_entry.path_for_printing}/"
+            if options[:dry_run]
+              puts "Would create #{dest_entry.path_for_printing}"
+              new_dest_dir = dest_entry.parent.child(src_entry.name)
+            else
+              new_dest_dir = dest_entry.parent.create_child(src_entry.name, nil)
+              puts "Created #{dest_entry.path_for_printing}/"
+            end
             # Directory creation is recursive.
             if recurse_depth != 0
               src_entry.children.each do |src_child|
                 new_dest_child = new_dest_dir.child(src_child.name)
-                copy_leaves(src_child, new_dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, purge, force)
+                copy_leaves(src_child, new_dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
               end
             end
           else
-            dest_entry.parent.create_child(src_entry.name, src_entry.read)
-            puts "Created #{dest_entry.path_for_printing}"
+            if options[:dry_run]
+              puts "Would create #{dest_entry.path_for_printing}"
+            else
+              dest_entry.parent.create_child(src_entry.name, src_entry.read)
+              puts "Created #{dest_entry.path_for_printing}"
+            end
           end
         end
 
@@ -159,7 +178,7 @@ module ChefFS
             return
           else
             # Both are files!  Copy them unless we're sure they are the same.
-            if force
+            if options[:force]
               should_copy = true
               src_value = src_entry.read
             else
@@ -170,9 +189,13 @@ module ChefFS
               end
             end
             if should_copy
-              src_value = src_entry.read if src_value == :not_retrieved
-              dest_entry.write(src_value)
-              puts "Updated #{dest_entry.path_for_printing}"
+              if options[:dry_run]
+                puts "Would update #{dest_entry.path_for_printing}"
+              else
+                src_value = src_entry.read if src_value == :not_retrieved
+                dest_entry.write(src_value)
+                puts "Updated #{dest_entry.path_for_printing}"
+              end
             end
           end
         end
