@@ -20,6 +20,17 @@ module ChefFS
       def can_have_child?(name, is_dir)
         is_dir
       end
+
+      def create_child(name, file_contents)
+        begin
+          rest.post_rest(api_path, { 'name' => name })
+        rescue Net::HTTPServerException
+          if $!.response.code != "409"
+            raise
+          end
+        end
+        DataBagDir.new(name, self, true)
+      end
     end
   end
 end

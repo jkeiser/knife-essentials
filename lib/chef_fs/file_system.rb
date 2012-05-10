@@ -42,7 +42,7 @@ module ChefFS
     # the entry at the end of the path.
     #
     # ==== Attributes
-    # 
+    #
     # * +entry+ - the entry to start looking under.  Relative
     #   paths will be resolved from here.
     # * +path+ - the path to resolve.  If it starts with +/+,
@@ -72,7 +72,7 @@ module ChefFS
     # given pattern will look identical to src.
     #
     # ==== Attributes
-    # 
+    #
     # * +pattern+ - ChefFS::FilePattern to match children under
     # * +src_root+ - the root from which things will be copied
     # * +dest_root+ - the root to which things will be copied
