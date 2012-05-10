@@ -86,12 +86,12 @@ module ChefFS
     #
     #     ChefFS::FileSystem.copy_to(FilePattern.new('/cookbooks', chef_fs, local_fs, nil, true)
     #
-    def self.copy_to(pattern, src_root, dest_root, recurse_depth, purge)
+    def self.copy_to(pattern, src_root, dest_root, recurse_depth, purge, force)
       found_result = false
       # Find things we might want to copy
       ChefFS::Diff::diffable_leaves_from_pattern(pattern, src_root, dest_root, recurse_depth) do |src_leaf, dest_leaf, child_recurse_depth|
         found_result = true
-        copy_leaves(src_leaf, dest_leaf, child_recurse_depth, purge)
+        copy_leaves(src_leaf, dest_leaf, child_recurse_depth, purge, force)
       end
       if !found_result && pattern.exact_path
         yield "#{pattern}: No such file or directory on remote or local"
@@ -101,7 +101,7 @@ module ChefFS
     private
 
     # Copy two known leaves (could be files or dirs)
-    def self.copy_leaves(src_entry, dest_entry, recurse_depth, purge)
+    def self.copy_leaves(src_entry, dest_entry, recurse_depth, purge, force)
       # A NOTE about this algorithm:
       # There are cases where this algorithm does too many network requests.
       # knife upload with a specific filename will first check if the file
@@ -133,7 +133,7 @@ module ChefFS
             if recurse_depth != 0
               src_entry.children.each do |src_child|
                 new_dest_child = new_dest_dir.child(src_child.name)
-                copy_leaves(src_child, new_dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, purge)
+                copy_leaves(src_child, new_dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, purge, force)
               end
             end
           else
@@ -159,8 +159,17 @@ module ChefFS
             return
           else
             # Both are files!  Copy them unless we're sure they are the same.
-            different, src_value, dest_value = ChefFS::Diff.diff_files_quick(src_entry, dest_entry)
-            if different || different == nil
+            if force
+              should_copy = true
+              src_value = src_entry.read
+            else
+              should_copy, src_value, dest_value = ChefFS::Diff.diff_files(src_entry, dest_entry)
+              src_value = src_entry.read if src_value == :not_retrieved
+              if should_copy == nil
+                should_copy = true
+              end
+            end
+            if should_copy
               src_value = src_entry.read if src_value == :not_retrieved
               dest_entry.write(src_value)
               puts "Updated #{dest_entry.path_for_printing}"

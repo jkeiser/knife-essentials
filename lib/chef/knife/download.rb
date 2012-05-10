@@ -20,12 +20,18 @@ class Chef
         :default => false,
         :description => "Delete matching local files and directories that do not exist remotely."
 
+      option :force,
+        :long => '--[no-]force',
+        :boolean => true,
+        :default => false,
+        :description => "Force upload of files even if they match (quicker and harmless, but doesn't print out what it changed)"
+
       def run
         patterns = pattern_args_from(name_args.length > 0 ? name_args : [ "" ])
 
         # Get the matches (recursively)
         patterns.each do |pattern|
-          ChefFS::FileSystem.copy_to(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1, config[:purge])
+          ChefFS::FileSystem.copy_to(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1, config[:purge], config[:force])
         end
       end
     end
