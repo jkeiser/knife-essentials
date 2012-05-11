@@ -1,3 +1,5 @@
+require 'json'
+
 class Chef
   class Knife
     class Raw < Chef::Knife
@@ -7,7 +9,13 @@ class Chef
         :long => '--method METHOD',
         :short => '-m METHOD',
         :default => "GET",
-        :description => "RequestSpecifies the local repository layout.  Values: default or full"
+        :description => "Request method (GET, POST, PUT or DELETE)"
+
+      option :pretty,
+        :long => '--[no-]pretty',
+        :boolean => true,
+        :default => true,
+        :description => "Pretty-print JSON output"
 
       option :input,
         :long => '--input FILE',
@@ -60,8 +68,11 @@ class Chef
           response_body = response.body
 
           if response.kind_of?(Net::HTTPSuccess)
-            # This is where we differ from Chef::REST: we return the raw body always.
-            response_body
+            if config[:pretty] && response['content-type'] =~ /json/
+              JSON.pretty_generate(JSON.parse(response_body, :create_additions => false))
+            else
+              response_body
+            end
           elsif redirect_location = redirected_to(response)
             raise "Redirected to #{create_url(redirect_location)}"
             follow_redirect {api_request(:GET, create_url(redirect_location))}
