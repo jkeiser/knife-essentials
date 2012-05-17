@@ -110,7 +110,40 @@ module ChefFS
       return result
     end
 
+    def self.sort_keys(json_object)
+      if json_object.is_a?(Array)
+        json_object.map { |o| sort_keys(o) }
+      elsif json_object.is_a?(Hash)
+        new_hash = {}
+        json_object.keys.sort.each { |key| new_hash[key] = sort_keys(json_object[key]) }
+        new_hash
+      else
+        json_object
+      end
+    end
+
+    def self.canonicalize_json(json_text)
+      parsed_json = JSON.parse(json_text, :create_additions => false)
+      parsed_json.delete('requesting_actor_type')
+      parsed_json.delete('requesting_user')
+      sorted_json = sort_keys(parsed_json)
+      JSON.pretty_generate(sorted_json)
+    end
+
     def self.diff_text(old_path, new_path, old_value, new_value)
+      # Reformat JSON for a nicer diff.
+      if old_path =~ /\.json$/
+        begin
+          reformatted_old_value = canonicalize_json(old_value)
+          reformatted_new_value = canonicalize_json(new_value)
+          old_value = reformatted_old_value
+          new_value = reformatted_new_value
+        rescue
+          # If JSON parsing fails, we just won't change any values and fall back
+          # to normal diff.
+        end
+      end
+
       # Copy to tempfiles before diffing
       # TODO don't copy things that are already in files!  Or find an in-memory diff algorithm
       begin
