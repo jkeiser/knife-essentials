@@ -15,8 +15,8 @@ module ChefFS
 
       def children
         begin
-          @children ||= rest.get_rest(api_path).keys.map do
-            |entry| DataBagDir.new(entry, self, true)
+          @children ||= rest.get_rest(api_path).keys.map do |entry|
+            DataBagDir.new(entry, self, true)
           end
         rescue Net::HTTPServerException
           if $!.response.code == "404"
