@@ -14,6 +14,23 @@ module ChefFS
         end
       end
 
+      attr_reader :chefignore
+
+      def chef_object
+        begin
+          if parent.path == "/cookbooks"
+            loader = Chef::CookbookVersionLoader.new(file_path, parent.chefignore)
+            return loader.load_cookbooks.cookbook_version
+          end
+
+          # Otherwise the information to inflate the object, is in the file (json_class).
+          return Chef::JSONCompat.from_json(read)
+        ensure
+          Chef::Log.error("Could not read #{path_for_printing} into a Chef object: #{$!}")
+        end
+        nil
+      end
+
       def children
         @children ||= Dir.entries(file_path).select { |entry| entry != '.' && entry != '..' && !ignored?(entry) }
                                             .map { |entry| ChefRepositoryFileSystemEntry.new(entry, self) }

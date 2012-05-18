@@ -43,8 +43,13 @@ module ChefFS
       end
 
       def read
+        Chef::JSONCompat.to_json_pretty(chef_object.to_hash)
+      end
+
+      def chef_object
         begin
-          Chef::JSONCompat.to_json_pretty(rest.get_rest(api_path).to_hash)
+          # REST will inflate the Chef object using json_class
+          rest.get_rest(api_path)
         rescue Net::HTTPServerException
           if $!.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new($!), "#{path_for_printing} not found"

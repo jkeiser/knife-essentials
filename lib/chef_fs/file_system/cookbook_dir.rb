@@ -49,7 +49,8 @@ module ChefFS
       def can_have_child?(name, is_dir)
         # A cookbook's root may not have directories unless they are segment directories
         if is_dir
-          return name != 'root_files' && COOKBOOK_SEGMENT_INFO.keys.any? { |segment| segment.to_s == name }
+          return name != 'root_files' &&
+                 COOKBOOK_SEGMENT_INFO.keys.any? { |segment| segment.to_s == name }
         end
         true
       end
@@ -57,6 +58,7 @@ module ChefFS
       def children
         if @children.nil?
           @children = []
+          manifest = chef_object.manifest
           COOKBOOK_SEGMENT_INFO.each do |segment, segment_info|
             next unless manifest.has_key?(segment)
 
@@ -103,28 +105,33 @@ module ChefFS
         parent.rest
       end
 
-      private
+      def chef_object
+        # We cheat and cache here, because it seems like a good idea to keep
+        # the cookbook view consistent with the directory structure.
+        return @chef_object if @chef_object
 
-      def manifest
         # The negative (not found) response is cached
-        if @could_not_get_manifest
-          raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_manifest), "#{path_for_printing} not found"
+        if @could_not_get_chef_object
+          raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_chef_object), "#{path_for_printing} not found"
         end
 
         begin
           # We want to fail fast, for now, because of the 500 issue :/
-          # This will make things worse for parallelism, a little.
+          # This will make things worse for parallelism, a little, because
+          # Chef::Config is global and this could affect other requests while
+          # this request is going on.  (We're not parallel yet, but we will be.)
+          # Chef bug http://tickets.opscode.com/browse/CHEF-3066
           old_retry_count = Chef::Config[:http_retry_count]
           begin
             Chef::Config[:http_retry_count] = 0
-            @manifest ||= rest.get_rest(api_path).manifest
+            @chef_object ||= rest.get_rest(api_path)
           ensure
             Chef::Config[:http_retry_count] = old_retry_count
           end
         rescue Net::HTTPServerException
           if $!.response.code == "404"
-            @could_not_get_manifest = $!
-            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_manifest), "#{path_for_printing} not found"
+            @could_not_get_chef_object = $!
+            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_chef_object), "#{path_for_printing} not found"
           else
             raise
           end
@@ -133,8 +140,8 @@ module ChefFS
         # Remove this when that bug is fixed.
         rescue Net::HTTPFatalError
           if $!.response.code == "500"
-            @could_not_get_manifest = $!
-            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_manifest), "#{path_for_printing} not found"
+            @could_not_get_chef_object = $!
+            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_chef_object), "#{path_for_printing} not found"
           else
             raise
           end
