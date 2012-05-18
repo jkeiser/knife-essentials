@@ -64,8 +64,7 @@ class Chef
         chef_rest.retriable_rest_request(method, url, json_body, headers) do |rest_request|
           response = rest_request.call {|r| r.read_body}
 
-#          response_body = chef_rest.decompress_body(response)
-          response_body = response.body
+          response_body = chef_rest.decompress_body(response)
 
           if response.kind_of?(Net::HTTPSuccess)
             if config[:pretty] && response['content-type'] =~ /json/
@@ -78,7 +77,7 @@ class Chef
             follow_redirect {api_request(:GET, create_url(redirect_location))}
           else
             # have to decompress the body before making an exception for it. But the body could be nil.
-#            response.body.replace(decompress_body(response)) if response.body.respond_to?(:replace)
+            response.body.replace(chef_rest.decompress_body(response)) if response.body.respond_to?(:replace)
 
             if response['content-type'] =~ /json/
               exception = response_body
@@ -98,7 +97,7 @@ class Chef
         headers['Accept']       = "application/json" unless raw
         headers["Content-Type"] = 'application/json' if json_body
         headers['Content-Length'] = json_body.bytesize.to_s if json_body
-#        headers[Chef::REST::RESTRequest::ACCEPT_ENCODING] = Chef::REST::RESTRequest::ENCODING_GZIP_DEFLATE
+        headers[Chef::REST::RESTRequest::ACCEPT_ENCODING] = Chef::REST::RESTRequest::ENCODING_GZIP_DEFLATE
         headers.merge!(chef_rest.authentication_headers(method, url, json_body)) if chef_rest.sign_requests?
         headers.merge!(Chef::Config[:custom_http_headers]) if Chef::Config[:custom_http_headers]
         headers
