@@ -1,3 +1,4 @@
+require 'support/spec_helper'
 require 'chef_fs/file_pattern'
 
 describe ChefFS::FilePattern do
@@ -487,7 +488,7 @@ describe ChefFS::FilePattern do
 	#  - ?, *, characters, **
 
 	# could_match_children?
-	# 
+	#
 	#
 	#
 	#

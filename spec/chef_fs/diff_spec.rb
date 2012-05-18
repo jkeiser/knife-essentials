@@ -1,4 +1,4 @@
-require 'support/file_system_support'
+require 'support/spec_helper'
 require 'chef_fs/diff'
 require 'chef_fs/file_pattern'
 require 'chef_fs/command_line'
@@ -61,79 +61,6 @@ describe ChefFS::Diff do
 				:file_in_a_dir_in_b => {}
 			}, /cannot_be_in_b/)
 		}
-		it 'diffable_leaves' do
-			diffable_leaves_should_yield_paths(a, b, nil,
-        %w(
-          /both_dirs/sub_both_dirs/subsub
-          /both_dirs/sub_both_files
-          /both_dirs/sub_both_files_different
-          /both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub
-          /both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub
-          /both_dirs/sub_a_only_dir
-          /both_dirs/sub_a_only_file
-          /both_dirs/sub_b_only_dir
-          /both_dirs/sub_b_only_file
-          /both_dirs/sub_dir_in_a_file_in_b
-          /both_dirs/sub_file_in_a_dir_in_b
-          /both_files
-          /both_files_different
-          /dirs_empty_in_b_filled_in_a/subsub
-          /dirs_empty_in_a_filled_in_b/subsub
-          /dirs_in_a_cannot_be_in_b
-          /dirs_in_b_cannot_be_in_a
-          /file_in_a_cannot_be_in_b
-          /file_in_b_cannot_be_in_a
-          /a_only_dir
-          /a_only_file
-          /b_only_dir
-          /b_only_file
-          /dir_in_a_file_in_b
-          /file_in_a_dir_in_b
-        ))
-		end
-    it 'diffable_leaves_from_pattern(/**file*)' do
-      diffable_leaves_from_pattern_should_yield_paths(pattern('/**file*'), a, b, nil,
-        %w(
-          /both_dirs/sub_both_files
-          /both_dirs/sub_both_files_different
-          /both_dirs/sub_a_only_file
-          /both_dirs/sub_b_only_file
-          /both_dirs/sub_dir_in_a_file_in_b
-          /both_dirs/sub_file_in_a_dir_in_b
-          /both_files
-          /both_files_different
-          /file_in_a_cannot_be_in_b
-          /file_in_b_cannot_be_in_a
-          /a_only_file
-          /b_only_file
-          /dir_in_a_file_in_b
-          /file_in_a_dir_in_b
-        ))
-    end
-    it 'diffable_leaves_from_pattern(/*dir*)' do
-      diffable_leaves_from_pattern_should_yield_paths(pattern('/*dir*'), a, b, nil,
-        %w(
-          /both_dirs/sub_both_dirs/subsub
-          /both_dirs/sub_both_files
-          /both_dirs/sub_both_files_different
-          /both_dirs/sub_dirs_empty_in_b_filled_in_a/subsub
-          /both_dirs/sub_dirs_empty_in_a_filled_in_b/subsub
-          /both_dirs/sub_a_only_dir
-          /both_dirs/sub_a_only_file
-          /both_dirs/sub_b_only_dir
-          /both_dirs/sub_b_only_file
-          /both_dirs/sub_dir_in_a_file_in_b
-          /both_dirs/sub_file_in_a_dir_in_b
-          /dirs_empty_in_b_filled_in_a/subsub
-          /dirs_empty_in_a_filled_in_b/subsub
-          /dirs_in_a_cannot_be_in_b
-          /dirs_in_b_cannot_be_in_a
-          /a_only_dir
-          /b_only_dir
-          /dir_in_a_file_in_b
-          /file_in_a_dir_in_b
-        ))
-    end
     it 'ChefFS::CommandLine.diff(/)' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, nil, nil) do |diff|

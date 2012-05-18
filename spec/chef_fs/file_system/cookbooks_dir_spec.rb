@@ -1,3 +1,4 @@
+require 'support/spec_helper'
 require 'chef_fs/file_system/chef_server_root_dir'
 require 'chef_fs/file_system'
 

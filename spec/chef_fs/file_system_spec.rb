@@ -1,4 +1,4 @@
-require 'support/file_system_support'
+require 'support/spec_helper'
 require 'chef_fs/file_system'
 require 'chef_fs/file_pattern'
 

@@ -4,10 +4,11 @@ module ChefFS
   module CommandLine
     def self.diff(pattern, a_root, b_root, recurse_depth, output_mode)
       found_result = false
-      ChefFS::Diff::diffable_leaves_from_pattern(pattern, a_root, b_root, recurse_depth) do |a_leaf, b_leaf|
+      ChefFS::FileSystem.list_pairs(pattern, a_root, b_root) do |a, b|
         found_result = true
-        diff = diff_leaves(a_leaf, b_leaf, output_mode)
-        yield diff if diff != ''
+        diff_entries(a, b, recurse_depth, output_mode) do |diff|
+          yield diff
+        end
       end
       if !found_result && pattern.exact_path
         yield "#{pattern}: No such file or directory on remote or local"
@@ -16,82 +17,94 @@ module ChefFS
 
     private
 
-    # Diff two known leaves (could be files or dirs)
-    def self.diff_leaves(old_file, new_file, output_mode)
-      result = ''
+    # Diff two known entries (could be files or dirs)
+    def self.diff_entries(old_entry, new_entry, recurse_depth, output_mode)
       # If both are directories
+      if old_entry.dir?
+        if new_entry.dir?
+          if recurse_depth == 0
+            if output_mode != :name_only && output_mode != :name_status
+              yield "Common subdirectories: #{old_entry.path}\n"
+            end
+          else
+            ChefFS::FileSystem.child_pairs(old_entry, new_entry).each do |old_child,new_child|
+              diff_entries(old_child, new_child,
+                           recurse_depth ? recurse_depth - 1 : nil, output_mode) do |diff|
+                yield diff
+              end
+            end
+          end
+
       # If old is a directory and new is a file
+        elsif new_entry.exists?
+          if output_mode == :name_only
+            yield "#{new_entry.path_for_printing}\n"
+          elsif output_mode == :name_status
+            yield "T\t#{new_entry.path_for_printing}\n"
+          else
+            yield "File #{new_entry.path_for_printing} is a directory while file #{new_entry.path_for_printing} is a regular file\n"
+          end
+
       # If old is a directory and new does not exist
-      if old_file.dir?
-        if new_file.dir?
-          if output_mode != :name_only && output_mode != :name_status
-            result << "Common subdirectories: #{old_file.path}\n"
-          end
-        elsif new_file.exists?
+        elsif new_entry.parent.can_have_child?(old_entry.name, old_entry.dir?)
           if output_mode == :name_only
-            result << "#{new_file.path_for_printing}\n"
+            yield "#{new_entry.path_for_printing}\n"
           elsif output_mode == :name_status
-            result << "T\t#{new_file.path_for_printing}\n"
+            yield "D\t#{new_entry.path_for_printing}\n"
           else
-            result << "File #{new_file.path_for_printing} is a directory while file #{new_file.path_for_printing} is a regular file\n"
-          end
-        elsif new_file.parent.can_have_child?(old_file.name, old_file.dir?)
-          if output_mode == :name_only
-            result << "#{new_file.path_for_printing}\n"
-          elsif output_mode == :name_status
-            result << "D\t#{new_file.path_for_printing}\n"
-          else
-            result << "Only in #{old_file.parent.path_for_printing}: #{old_file.name}\n"
+            yield "Only in #{old_entry.parent.path_for_printing}: #{old_entry.name}\n"
           end
         end
 
-      # If new is a directory and old does not exist
       # If new is a directory and old is a file
-      elsif new_file.dir?
-        if old_file.exists?
+      elsif new_entry.dir?
+        if old_entry.exists?
           if output_mode == :name_only
-            result << "#{new_file.path_for_printing}\n"
+            yield "#{new_entry.path_for_printing}\n"
           elsif output_mode == :name_status
-            result << "T\t#{new_file.path_for_printing}\n"
+            yield "T\t#{new_entry.path_for_printing}\n"
           else
-            result << "File #{old_file.path_for_printing} is a regular file while file #{old_file.path_for_printing} is a directory\n"
+            yield "File #{old_entry.path_for_printing} is a regular file while file #{old_entry.path_for_printing} is a directory\n"
           end
-        elsif old_file.parent.can_have_child?(new_file.name, new_file.dir?)
+
+      # If new is a directory and old does not exist
+        elsif old_entry.parent.can_have_child?(new_entry.name, new_entry.dir?)
           if output_mode == :name_only
-            result << "#{new_file.path_for_printing}\n"
+            yield "#{new_entry.path_for_printing}\n"
           elsif output_mode == :name_status
-            result << "A\t#{new_file.path_for_printing}\n"
+            yield "A\t#{new_entry.path_for_printing}\n"
           else
-            result << "Only in #{new_file.parent.path_for_printing}: #{new_file.name}\n"
+            yield "Only in #{new_entry.parent.path_for_printing}: #{new_entry.name}\n"
           end
         end
 
       else
         # Neither is a directory, so they are diffable with file diff
-        different, old_value, new_value = ChefFS::Diff::diff_files(old_file, new_file)
+        different, old_value, new_value = ChefFS::Diff::diff_files(old_entry, new_entry)
         if different
           # If one of the files doesn't exist, we only want to print the diff if the
           # other file *could be uploaded/downloaded*.
-          if !old_value && !old_file.parent.can_have_child?(new_file.name, new_file.dir?)
-            return result
+          if !old_value && !old_entry.parent.can_have_child?(new_entry.name, new_entry.dir?)
+            return
           end
-          if !new_value && !new_file.parent.can_have_child?(old_file.name, old_file.dir?)
-            return result
+          if !new_value && !new_entry.parent.can_have_child?(old_entry.name, old_entry.dir?)
+            return
           end
 
           if output_mode == :name_only
-            result << "#{new_file.path_for_printing}\n"
+            yield "#{new_entry.path_for_printing}\n"
           elsif output_mode == :name_status
             if !old_value
-              result << "A\t#{new_file.path_for_printing}\n"
+              yield "A\t#{new_entry.path_for_printing}\n"
             elsif !new_value
-              result << "D\t#{new_file.path_for_printing}\n"
+              yield "D\t#{new_entry.path_for_printing}\n"
             else
-              result << "M\t#{new_file.path_for_printing}\n"
+              yield "M\t#{new_entry.path_for_printing}\n"
             end
           else
-            old_path = old_file.path_for_printing
-            new_path = new_file.path_for_printing
+            old_path = old_entry.path_for_printing
+            new_path = new_entry.path_for_printing
+            result = ''
             result << "diff --knife #{old_path} #{new_path}\n"
             if !old_value
               result << "new file\n"
@@ -104,10 +117,10 @@ module ChefFS
               new_value = ''
             end
             result << diff_text(old_path, new_path, old_value, new_value)
+            yield result
           end
         end
       end
-      return result
     end
 
     def self.sort_keys(json_object)

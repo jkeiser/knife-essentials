@@ -13,6 +13,9 @@ module ChefFS
     end
 
     def self.diff_files_quick(old_file, new_file)
+      # TODO change this so that it:
+      # a. Asks old_file / new_file to diff each other
+      # b. Add checksum to local fs for quick diff
       #
       # Short-circuit expensive comparison (could be an extra network
       # request) if a pre-calculated checksum is there
@@ -41,8 +44,10 @@ module ChefFS
           end
         end
 
-        # If the checksums are the same, they are the same.  Return.
-        return [ false, old_value, new_value ] if old_checksum == new_checksum
+        # If the checksums are the same, the files are the same.
+        # (If they are different, it's possible that a content-aware
+        # JSON diff will still think they are the same.)
+        return [ true, old_value, new_value ]
       end
 
       return [ nil, old_value, new_value ]
@@ -75,82 +80,6 @@ module ChefFS
         end
       end
       return nil
-    end
-
-    # Gets all common leaves, recursively, starting from the results of
-    # a pattern search on two roots.
-    #
-    # ==== Attributes
-    #
-    # * +pattern+ - a ChefFS::FilePattern representing the search you want to
-    #   do on both roots.
-    # * +a_root+ - the first root.
-    # * +b_root+ - 
-    # * +recurse_depth+ - the maximum number of directories to recurse from each
-    #   pattern result.  +0+ will cause pattern results to be immediately returned.
-    #   +nil+ means recurse infinitely to find all leaves.
-    #
-    def self.diffable_leaves_from_pattern(pattern, a_root, b_root, recurse_depth)
-      # Make sure everything on the server is also on the filesystem, and diff
-      found_paths = Set.new
-      ChefFS::FileSystem.list(a_root, pattern) do |a|
-        found_paths << a.path
-        b = ChefFS::FileSystem.resolve_path(b_root, a.path)
-        diffable_leaves(a, b, recurse_depth) do |a_leaf, b_leaf, leaf_recurse_depth|
-          yield [ a_leaf, b_leaf, leaf_recurse_depth ]
-        end
-      end
-
-      # Check the outer regex pattern to see if it matches anything on the
-      # filesystem that isn't on the server
-      ChefFS::FileSystem.list(b_root, pattern) do |b|
-        if !found_paths.include?(b.path)
-          a = ChefFS::FileSystem.resolve_path(a_root, b.path)
-          yield [ a, b, recurse_depth ]
-        end
-      end
-    end
-
-    # Gets all common leaves, recursively, from a pair of directories or files.  It
-    # recursively descends into all children of +a+ and +b+, yielding equivalent
-    # pairs (common children with the same name) when it finds:
-    # * +a+ or +b+ is not a directory.
-    # * Both +a+ and +b+ are empty.
-    # * It reaches +recurse_depth+ depth in the tree.
-    #
-    # This method will *not* check whether files exist, nor will it actually diff
-    # the contents of files.
-    #
-    # ==== Attributes
-    #
-    # +a+ - the first directory to recursively scan
-    # +b+ - the second directory to recursively scan, in tandem with +a+
-    # +recurse_depth - the maximum number of directories to go down.  +0+ will
-    # cause +a+ and +b+ to be immediately returned.  +nil+ means recurse
-    # infinitely.
-    #
-    def self.diffable_leaves(a, b, recurse_depth)
-      # If both are directories, recurse into them and diff the children instead of returning ourselves.
-      if recurse_depth != 0 && a.dir? && b.dir?
-        a_children_names = Set.new
-        a.children.each do |a_child|
-          a_children_names << a_child.name
-          diffable_leaves(a_child, b.child(a_child.name), recurse_depth ? recurse_depth - 1 : nil) do |a_leaf, b_leaf, leaf_recurse_depth|
-            yield [ a_leaf, b_leaf, leaf_recurse_depth ]
-          end
-        end
-
-        # Check b for children that aren't in a
-        b.children.each do |b_child|
-          if !a_children_names.include?(b_child.name)
-            yield [ a.child(b_child.name), b_child, recurse_depth ]
-          end
-        end
-        return
-      end
-
-      # Otherwise, this is a leaf we must diff.
-      yield [a, b]
     end
 
     private

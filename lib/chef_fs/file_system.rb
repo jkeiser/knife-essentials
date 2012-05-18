@@ -88,26 +88,98 @@ module ChefFS
     #   - +dry_run+ - if +true+, action will not actually be taken;
     #     things will be printed out instead.
     #
+    # ==== Yields
+    #
+    #     Yields messages saying what it did.
+    #
     # ==== Examples
     #
-    #     ChefFS::FileSystem.copy_to(FilePattern.new('/cookbooks', chef_fs, local_fs, nil, true)
+    #     ChefFS::FileSystem.copy_to(FilePattern.new('/cookbooks'),
+    #       chef_fs, local_fs, nil, true) do |message|
+    #       puts message
+    #     end
     #
     def self.copy_to(pattern, src_root, dest_root, recurse_depth, options)
       found_result = false
-      # Find things we might want to copy
-      ChefFS::Diff::diffable_leaves_from_pattern(pattern, src_root, dest_root, recurse_depth) do |src_leaf, dest_leaf, child_recurse_depth|
-        found_result = true
-        copy_leaves(src_leaf, dest_leaf, child_recurse_depth, options)
+      list_pairs(pattern, src_root, dest_root) do |a, b|
+        copy_entries(a, b, recurse_depth, options)
       end
       if !found_result && pattern.exact_path
         yield "#{pattern}: No such file or directory on remote or local"
       end
     end
 
+    # Yield entries for children that are in either +a_root+ or +b_root+, with
+    # matching pairs matched up.
+    #
+    # ==== Yields
+    #
+    # Yields matching entries in pairs:
+    #
+    #    [ a_entry, b_entry ]
+    #
+    # ==== Example
+    #
+    #     ChefFS::FileSystem.list_pairs(FilePattern.new('**x.txt', a_root, b_root)) do |a, b|
+    #       ...
+    #     end
+    #
+    def self.list_pairs(pattern, a_root, b_root)
+      # Make sure everything on the server is also on the filesystem, and diff
+      found_paths = Set.new
+      ChefFS::FileSystem.list(a_root, pattern) do |a|
+        found_paths << a.path
+        b = ChefFS::FileSystem.resolve_path(b_root, a.path)
+        yield [ a, b ]
+      end
+
+      # Check the outer regex pattern to see if it matches anything on the
+      # filesystem that isn't on the server
+      ChefFS::FileSystem.list(b_root, pattern) do |b|
+        if !found_paths.include?(b.path)
+          a = ChefFS::FileSystem.resolve_path(a_root, b.path)
+          yield [ a, b ]
+        end
+      end
+    end
+
+    # Get entries for children of either a or b, with matching pairs matched up.
+    #
+    # ==== Returns
+    #
+    # An array of child pairs.
+    #
+    #     [ [ a_child, b_child ], ... ]
+    #
+    # If a child is only in a or only in b, the other child entry will be
+    # retrieved by name (and will most likely be a "nonexistent child").
+    #
+    # ==== Example
+    #
+    #     ChefFS::FileSystem.child_pairs(a, b).length
+    #
+    def self.child_pairs(a, b)
+      # If both are directories, recurse into them and diff the children instead of returning ourselves.
+      result = []
+      a_children_names = Set.new
+      a.children.each do |a_child|
+        a_children_names << a_child.name
+        result << [ a_child, b.child(a_child.name) ]
+      end
+
+      # Check b for children that aren't in a
+      b.children.each do |b_child|
+        if !a_children_names.include?(b_child.name)
+          result << [ a.child(b_child.name), b_child ]
+        end
+      end
+      result
+    end
+
     private
 
-    # Copy two known leaves (could be files or dirs)
-    def self.copy_leaves(src_entry, dest_entry, recurse_depth, options)
+    # Copy two entries (could be files or dirs)
+    def self.copy_entries(src_entry, dest_entry, recurse_depth, options)
       # A NOTE about this algorithm:
       # There are cases where this algorithm does too many network requests.
       # knife upload with a specific filename will first check if the file
@@ -148,7 +220,7 @@ module ChefFS
             if recurse_depth != 0
               src_entry.children.each do |src_child|
                 new_dest_child = new_dest_dir.child(src_child.name)
-                copy_leaves(src_child, new_dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
+                copy_entries(src_child, new_dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
               end
             end
           else
@@ -163,10 +235,28 @@ module ChefFS
 
       else
         # Both exist.
+        # If the entry can do a copy directly, do that.
+        if dest_entry.respond_to(:copy_from)
+          if options[:force] || dest_entry.should_copy_from(src_entry)
+            if options[:dry_run]
+              puts "Would update #{dest_entry.path_for_printing}"
+            else
+              dest_entry.copy_from(src_entry, options[:force])
+              puts "Updated #{dest_entry.path_for_printing}"
+            end
+          end
+          return
+        end
+
         # If they are different types, log an error.
         if src_entry.dir?
           if dest_entry.dir?
-            # If they are both directories, we'll end up recursing later.
+            # If both are directories, recurse into their children
+            if recurse_depth != 0
+              child_pairs(a, b).each do |a_child, b_child|
+                copy_entries(a_child, b_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
+              end
+            end
           else
             # If they are different types.
             Chef::Log.error("File #{dest_entry.path_for_printing} is a directory while file #{dest_entry.path_for_printing} is a regular file\n")
