@@ -1,5 +1,5 @@
-require 'chef_fs/file_system/base_fs_dir'
-require 'chef_fs/file_system/rest_list_entry'
+require 'chef_fs/file_system/rest_list_dir'
+require 'chef_fs/file_system/data_bag_item'
 require 'chef_fs/file_system/not_found_error'
 
 module ChefFS
@@ -25,6 +25,11 @@ module ChefFS
         end
         @exists
       end
+
+      def _make_child_entry(name, exists = nil)
+        DataBagItem.new(name, self, exists)
+      end
+
     end
   end
 end

@@ -14,7 +14,17 @@ module ChefFS
       end
 
       def children
-        @children ||= rest.get_rest(api_path).keys.map { |entry| DataBagDir.new(entry, self, true) }
+        begin
+          @children ||= rest.get_rest(api_path).keys.map do
+            |entry| DataBagDir.new(entry, self, true)
+          end
+        rescue Net::HTTPServerException
+          if $!.response.code == "404"
+            raise ChefFS::FileSystem::NotFoundError.new($!), "#{path_for_printing} not found"
+          else
+            raise
+          end
+        end
       end
 
       def can_have_child?(name, is_dir)

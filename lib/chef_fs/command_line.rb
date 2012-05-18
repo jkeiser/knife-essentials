@@ -124,8 +124,6 @@ module ChefFS
 
     def self.canonicalize_json(json_text)
       parsed_json = JSON.parse(json_text, :create_additions => false)
-      parsed_json.delete('requesting_actor_type')
-      parsed_json.delete('requesting_user')
       sorted_json = sort_keys(parsed_json)
       JSON.pretty_generate(sorted_json)
     end

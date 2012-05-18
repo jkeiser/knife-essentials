@@ -14,7 +14,8 @@ module ChefFS
 
       def child(name)
         result = @children.select { |child| child.name == name }.first if @children
-        result ||= can_have_child?(name, false) ? RestListEntry.new(name, self) : NonexistentFSObject.new(name, self)
+        result ||= can_have_child?(name, false) ?
+                   _make_child_entry(name) : NonexistentFSObject.new(name, self)
       end
 
       def can_have_child?(name, is_dir)
@@ -23,7 +24,9 @@ module ChefFS
 
       def children
         begin
-          @children ||= rest.get_rest(api_path).keys.map { |key| RestListEntry.new("#{key}.json", self, true) }
+          @children ||= rest.get_rest(api_path).keys.map do |key|
+            _make_child_entry("#{key}.json", true)
+          end
         rescue Net::HTTPServerException
           if $!.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new($!), "#{path_for_printing} not found"
@@ -42,7 +45,7 @@ module ChefFS
           raise "Name in #{path_for_printing}/#{name} must be '#{base_name}' (is '#{json['id']}')"
         end
         rest.post_rest(api_path, json)
-        RestListEntry.new(name, self, true)
+        _make_child_entry(name, true)
       end
 
       def environment
@@ -52,6 +55,11 @@ module ChefFS
       def rest
         parent.rest
       end
+
+      def _make_child_entry(name, exists = nil)
+        RestListEntry.new(name, self, exists)
+      end
+
     end
   end
 end

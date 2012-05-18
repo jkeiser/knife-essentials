@@ -65,10 +65,8 @@ module ChefFS
       def write(file_contents)
         json = Chef::JSONCompat.from_json(file_contents).to_hash
         base_name = name[0,name.length-5]
-        if json.include?('name') && json['name'] != base_name
+        if json['name'] != base_name
           raise "Name in #{path_for_printing}/#{name} must be '#{base_name}' (is '#{json['name']}')"
-        elsif json.include?('id') && json['id'] != base_name
-          raise "Name in #{path_for_printing}/#{name} must be '#{base_name}' (is '#{json['id']}')"
         end
         begin
           rest.put_rest(api_path, json)
