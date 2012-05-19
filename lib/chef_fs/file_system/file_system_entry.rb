@@ -50,7 +50,7 @@ module ChefFS
 
       def read
         begin
-          File.open(file, "rb") {|f| f.read}
+          File.open(file_path, "rb") {|f| f.read}
         rescue Errno::ENOENT
           raise ChefFS::FileSystem::NotFoundError.new($!), "#{file_path} not found"
         end

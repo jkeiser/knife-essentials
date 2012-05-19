@@ -1,9 +1,8 @@
 require 'support/spec_helper'
-require 'chef_fs/diff'
 require 'chef_fs/file_pattern'
 require 'chef_fs/command_line'
 
-describe ChefFS::Diff do
+describe 'diff' do
   include FileSystemSupport
 
 	context 'with two filesystems with all types of difference' do

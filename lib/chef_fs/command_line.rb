@@ -80,23 +80,34 @@ module ChefFS
 
       else
         # Neither is a directory, so they are diffable with file diff
-        different, old_value, new_value = ChefFS::Diff::diff_files(old_entry, new_entry)
-        if different
+        are_same, old_value, new_value = ChefFS::FileSystem.compare(old_entry, new_entry)
+        if !are_same
+          begin
+            old_value = old_entry.read if old_value.nil?
+          rescue ChefFS::FileSystem::NotFoundError
+            old_value = :none
+          end
+          begin
+            new_value = new_entry.read if new_value.nil?
+          rescue ChefFS::FileSystem::NotFoundError
+            new_value = :none
+          end
+
           # If one of the files doesn't exist, we only want to print the diff if the
           # other file *could be uploaded/downloaded*.
-          if !old_value && !old_entry.parent.can_have_child?(new_entry.name, new_entry.dir?)
+          if old_value == :none && !old_entry.parent.can_have_child?(new_entry.name, new_entry.dir?)
             return
           end
-          if !new_value && !new_entry.parent.can_have_child?(old_entry.name, old_entry.dir?)
+          if new_value == :none && !new_entry.parent.can_have_child?(old_entry.name, old_entry.dir?)
             return
           end
 
           if output_mode == :name_only
             yield "#{new_entry.path_for_printing}\n"
           elsif output_mode == :name_status
-            if !old_value
+            if old_value == :none
               yield "A\t#{new_entry.path_for_printing}\n"
-            elsif !new_value
+            elsif new_value == :none
               yield "D\t#{new_entry.path_for_printing}\n"
             else
               yield "M\t#{new_entry.path_for_printing}\n"
@@ -106,12 +117,12 @@ module ChefFS
             new_path = new_entry.path_for_printing
             result = ''
             result << "diff --knife #{old_path} #{new_path}\n"
-            if !old_value
+            if old_value == :none
               result << "new file\n"
               old_path = "/dev/null"
               old_value = ''
             end
-            if !new_value
+            if new_value == :none
               result << "deleted file\n"
               new_path = "/dev/null"
               new_value = ''

@@ -88,10 +88,6 @@ module ChefFS
     #   - +dry_run+ - if +true+, action will not actually be taken;
     #     things will be printed out instead.
     #
-    # ==== Yields
-    #
-    #     Yields messages saying what it did.
-    #
     # ==== Examples
     #
     #     ChefFS::FileSystem.copy_to(FilePattern.new('/cookbooks'),
@@ -102,10 +98,11 @@ module ChefFS
     def self.copy_to(pattern, src_root, dest_root, recurse_depth, options)
       found_result = false
       list_pairs(pattern, src_root, dest_root) do |a, b|
+        found_result = true
         copy_entries(a, b, recurse_depth, options)
       end
       if !found_result && pattern.exact_path
-        yield "#{pattern}: No such file or directory on remote or local"
+        puts "#{pattern}: No such file or directory on remote or local"
       end
     end
 
@@ -176,6 +173,27 @@ module ChefFS
       result
     end
 
+    def self.compare(a, b)
+      are_same, a_value, b_value = a.compare_to(b)
+      if are_same.nil?
+        are_same, b_value, a_value = b.compare_to(a)
+      end
+      if are_same.nil?
+        begin
+          a_value = a.read if a_value.nil?
+        rescue ChefFS::FileSystem::NotFoundError
+          a_value = :none
+        end
+        begin
+          b_value = b.read if b_value.nil?
+        rescue ChefFS::FileSystem::NotFoundError
+          b_value = :none
+        end
+        are_same = (a_value == b_value)
+      end
+      [ are_same, a_value, b_value ]
+    end
+
     private
 
     # Copy two entries (could be files or dirs)
@@ -235,13 +253,15 @@ module ChefFS
 
       else
         # Both exist.
+
         # If the entry can do a copy directly, do that.
-        if dest_entry.respond_to(:copy_from)
-          if options[:force] || dest_entry.should_copy_from(src_entry)
+        if dest_entry.respond_to?(:copy_from)
+          if options[:force] || compare(src_entry, dest_entry)[0] == false
             if options[:dry_run]
               puts "Would update #{dest_entry.path_for_printing}"
             else
-              dest_entry.copy_from(src_entry, options[:force])
+              puts "Updating #{dest_entry.path_for_printing} ..."
+              dest_entry.copy_from(src_entry)
               puts "Updated #{dest_entry.path_for_printing}"
             end
           end
@@ -253,8 +273,8 @@ module ChefFS
           if dest_entry.dir?
             # If both are directories, recurse into their children
             if recurse_depth != 0
-              child_pairs(a, b).each do |a_child, b_child|
-                copy_entries(a_child, b_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
+              child_pairs(src_entry, dest_entry).each do |src_child, dest_child|
+                copy_entries(src_child, dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
               end
             end
           else
@@ -270,19 +290,16 @@ module ChefFS
             # Both are files!  Copy them unless we're sure they are the same.
             if options[:force]
               should_copy = true
-              src_value = src_entry.read
+              src_value = nil
             else
-              should_copy, src_value, dest_value = ChefFS::Diff.diff_files(src_entry, dest_entry)
-              src_value = src_entry.read if src_value == :not_retrieved
-              if should_copy == nil
-                should_copy = true
-              end
+              are_same, src_value, dest_value = compare(src_entry, dest_entry)
+              should_copy = !are_same
             end
             if should_copy
               if options[:dry_run]
                 puts "Would update #{dest_entry.path_for_printing}"
               else
-                src_value = src_entry.read if src_value == :not_retrieved
+                src_value = src_entry.read if src_value.nil?
                 dest_entry.write(src_value)
                 puts "Updated #{dest_entry.path_for_printing}"
               end

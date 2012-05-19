@@ -59,12 +59,15 @@ module ChefFS
         end
       end
 
-      def rest
-        parent.rest
+      def compare_to(other)
+        other_value = other.read
+        value = chef_object.to_hash
+        are_same = (value == Chef::JSONCompat.from_json(other_value, :create_additions => false))
+        [ are_same, Chef::JSONCompat.to_json_pretty(value), other_value ]
       end
 
-      def content_type
-        :json
+      def rest
+        parent.rest
       end
 
       def write(file_contents)

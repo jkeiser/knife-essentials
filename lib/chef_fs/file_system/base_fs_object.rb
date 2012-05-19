@@ -40,10 +40,6 @@ module ChefFS
         true
       end
 
-      def content_type
-        :text
-      end
-
       def child(name)
         NonexistentFSObject.new(name, self)
       end
@@ -53,6 +49,43 @@ module ChefFS
       # files, etc.)
       def can_have_child?(name, is_dir)
         false
+      end
+
+      # Override this if you have a special comparison algorithm that can tell
+      # you whether this entry is the same as another--either a quicker or a
+      # more reliable one.  Callers will use this to decide whether to upload,
+      # download or diff an object.
+      #
+      # You should not override this if you're going to do the standard
+      # +self.read == other.read+.  If you return +nil+, the caller will call
+      # +other.compare_to(you)+ instead.  Give them a chance :)
+      #
+      # ==== Parameters
+      #
+      # * +other+ - the entry to compare to
+      #
+      # ==== Returns
+      #
+      # * +[ are_same, value, other_value ]+
+      #   +are_same+ may be +true+, +false+ or +nil+ (which means "don't know").
+      #   +value+ and +other_value+ must either be the text of +self+ or +other+,
+      #   +:none+ (if the entry does not exist or has no value) or +nil+ if the
+      #   value was not retrieved.
+      # * +nil+ if a definitive answer cannot be had and nothing was retrieved.
+      #
+      # ==== Example
+      #
+      #     are_same, value, other_value = entry.compare_to(other)
+      #     if are_same.nil?
+      #       are_same, other_value, value = other.compare_to(entry)
+      #     end
+      #     if are_same.nil?
+      #       value = entry.read if value.nil?
+      #       other_value = entry.read if other_value.nil?
+      #       are_same = (value == other_value)
+      #     end
+      def compare_to(other)
+        return nil
       end
 
       # Important directory attributes: name, parent, path, root
