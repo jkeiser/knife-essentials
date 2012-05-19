@@ -1,4 +1,4 @@
-require 'chef_fs/diff'
+require 'chef_fs/file_system'
 
 module ChefFS
   module CommandLine

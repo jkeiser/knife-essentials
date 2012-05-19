@@ -1,5 +1,4 @@
 require 'chef_fs/path_utils'
-require 'chef_fs/diff'
 
 module ChefFS
   module FileSystem
