@@ -60,7 +60,11 @@ module ChefFS
       end
 
       def compare_to(other)
-        other_value = other.read
+        begin
+          other_value = other.read
+        rescue ChefFS::FileSystem::NotFoundError
+          return [ nil, nil, :none ]
+        end
         value = chef_object.to_hash
         are_same = (value == Chef::JSONCompat.from_json(other_value, :create_additions => false))
         [ are_same, Chef::JSONCompat.to_json_pretty(value), other_value ]
