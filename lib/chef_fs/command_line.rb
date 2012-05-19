@@ -15,8 +15,6 @@ module ChefFS
       end
     end
 
-    private
-
     # Diff two known entries (could be files or dirs)
     def self.diff_entries(old_entry, new_entry, recurse_depth, output_mode)
       # If both are directories
@@ -82,30 +80,34 @@ module ChefFS
         # Neither is a directory, so they are diffable with file diff
         are_same, old_value, new_value = ChefFS::FileSystem.compare(old_entry, new_entry)
         if !are_same
-          begin
-            old_value = old_entry.read if old_value.nil?
-          rescue ChefFS::FileSystem::NotFoundError
-            old_value = :none
+          if old_value == :none
+            old_exists = false
+          elsif old_value.nil?
+            old_exists = old_entry.exists?
+          else
+            old_exists = true
           end
-          begin
-            new_value = new_entry.read if new_value.nil?
-          rescue ChefFS::FileSystem::NotFoundError
-            new_value = :none
+          if new_value == :none
+            new_exists = false
+          elsif new_value.nil?
+            new_exists = new_entry.exists?
+          else
+            new_exists = true
           end
 
           # If one of the files doesn't exist, we only want to print the diff if the
           # other file *could be uploaded/downloaded*.
-          if old_value == :none && !old_entry.parent.can_have_child?(new_entry.name, new_entry.dir?)
+          if !old_exists && !old_entry.parent.can_have_child?(new_entry.name, new_entry.dir?)
             return
           end
-          if new_value == :none && !new_entry.parent.can_have_child?(old_entry.name, old_entry.dir?)
+          if !new_exists && !new_entry.parent.can_have_child?(old_entry.name, old_entry.dir?)
             return
           end
 
           if output_mode == :name_only
             yield "#{new_entry.path_for_printing}\n"
           elsif output_mode == :name_status
-            if old_value == :none
+            if old_value == :none || (old_value == nil && !old_entry.exists?)
               yield "A\t#{new_entry.path_for_printing}\n"
             elsif new_value == :none
               yield "D\t#{new_entry.path_for_printing}\n"
@@ -113,6 +115,18 @@ module ChefFS
               yield "M\t#{new_entry.path_for_printing}\n"
             end
           else
+            # If we haven't read the values yet, get them now.
+            begin
+              old_value = old_entry.read if old_value.nil?
+            rescue ChefFS::FileSystem::NotFoundError
+              old_value = :none
+            end
+            begin
+              new_value = new_entry.read if new_value.nil?
+            rescue ChefFS::FileSystem::NotFoundError
+              new_value = :none
+            end
+
             old_path = old_entry.path_for_printing
             new_path = new_entry.path_for_printing
             result = ''
@@ -133,6 +147,8 @@ module ChefFS
         end
       end
     end
+
+    private
 
     def self.sort_keys(json_object)
       if json_object.is_a?(Array)
