@@ -18,9 +18,9 @@ More verbs will be added as time goes by.
 
 This plugin can be installed as a Ruby Gem.
 
-    gem install knife-essentials.
+    gem install knife-essentials
 
-You can also copy the source repository and install it using +rake install+:
+You can also copy the source repository and install it using +rake install+.
 
 = PRINCIPLES
 
