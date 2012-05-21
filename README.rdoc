@@ -8,11 +8,19 @@ that is stored in the Chef server.
 
    knife diff cookbooks/*apache*
    knife download roles data_bags cookbooks/emacs
+   knife upload apache*
    knife list data_bags/users
-   knife show roles/*base*
+   cd cookbooks && knife show *base*
 
-The plugin is in early days: more verbs will be added as time goes by, including
-+edit+, +delete+, +upload+ and +download+.
+More verbs will be added as time goes by.
+
+= INSTALLATION:
+
+This plugin can be installed as a Ruby Gem.
+
+    gem install knife-essentials.
+
+You can also copy the source repository and install it using +rake install+:
 
 = PRINCIPLES
 
@@ -42,12 +50,6 @@ diff, upload and download extremely simple to do and easy to understand.
 When you're in the +roles+ directory, the system knows that's what you are
 working with.  Just type +knife show base.json+ and it will show you the base
 role from the server.  knife-essentials knows.
-
-= INSTALLATION:
-
-This plugin builds a Ruby Gem (but has not yet been released to RubyGems).  To install it, run:
-
-    rake install
 
 = KNIFE PLUGINS
 
