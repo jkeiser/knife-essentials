@@ -4,7 +4,7 @@ require 'chef_fs/command_line'
 class Chef
   class Knife
     class Diff < ChefFS::Knife
-      banner "diff PATTERNS"
+      banner "knife diff PATTERNS"
 
       common_options
 

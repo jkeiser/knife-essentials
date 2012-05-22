@@ -4,7 +4,7 @@ require 'chef_fs/file_system'
 class Chef
   class Knife
     class Delete < ChefFS::Knife
-      banner "delete [PATTERN1 ... PATTERNn]"
+      banner "knife delete [PATTERN1 ... PATTERNn]"
 
       common_options
 
