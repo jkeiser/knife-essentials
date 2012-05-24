@@ -103,6 +103,9 @@ module ChefFS
       end
 
       def compare_to(other)
+        if !other.dir?
+          return [ !exists?, nil, nil ]
+        end
         are_same = true
         ChefFS::CommandLine::diff_entries(self, other, nil, :name_only) do
           are_same = false
