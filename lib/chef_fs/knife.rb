@@ -14,7 +14,10 @@ module ChefFS
     end
 
     def base_path
-      @base_path ||= "/" + ChefFS::PathUtils::relative_to(File.absolute_path(Dir.pwd), chef_repo)
+      @base_path ||= begin
+        relative_to_base = ChefFS::PathUtils::relative_to(File.absolute_path(Dir.pwd), chef_repo)
+        relative_to_base == '.' ? '/' : "/#{relative_to_base}"
+      end
     end
 
     def chef_fs
