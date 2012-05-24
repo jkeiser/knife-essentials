@@ -312,7 +312,7 @@ module ChefFS
 
     def self.get_or_create_parent(entry, options)
       parent = entry.parent
-      if !parent.exists?
+      if parent && !parent.exists?
         parent_parent = get_or_create_parent(entry.parent, options)
         if options[:dry_run]
           puts "Would create #{parent.path_for_printing}"
