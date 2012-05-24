@@ -98,7 +98,8 @@ module ChefFS
       found_result = false
       list_pairs(pattern, src_root, dest_root) do |src, dest|
         found_result = true
-        copy_entries(src, dest, recurse_depth, options)
+        new_dest_parent = get_or_create_parent(dest, options)
+        copy_entries(src, dest, new_dest_parent, recurse_depth, options)
       end
       if !found_result && pattern.exact_path
         puts "#{pattern}: No such file or directory on remote or local"
@@ -196,7 +197,7 @@ module ChefFS
     private
 
     # Copy two entries (could be files or dirs)
-    def self.copy_entries(src_entry, dest_entry, recurse_depth, options)
+    def self.copy_entries(src_entry, dest_entry, new_dest_parent, recurse_depth, options)
       # A NOTE about this algorithm:
       # There are cases where this algorithm does too many network requests.
       # knife upload with a specific filename will first check if the file
@@ -224,28 +225,27 @@ module ChefFS
         end
 
       elsif !dest_entry.exists?
-        dest_parent = get_or_create_parent(dest_entry, options)
-        if dest_parent.can_have_child?(src_entry.name, src_entry.dir?)
+        if new_dest_parent.can_have_child?(src_entry.name, src_entry.dir?)
           if src_entry.dir?
             if options[:dry_run]
               puts "Would create #{dest_entry.path_for_printing}"
-              new_dest_dir = dest_parent.child(src_entry.name)
+              new_dest_dir = new_dest_parent.child(src_entry.name)
             else
-              new_dest_dir = dest_parent.create_child(src_entry.name, nil)
+              new_dest_dir = new_dest_parent.create_child(src_entry.name, nil)
               puts "Created #{dest_entry.path_for_printing}/"
             end
             # Directory creation is recursive.
             if recurse_depth != 0
               src_entry.children.each do |src_child|
                 new_dest_child = new_dest_dir.child(src_child.name)
-                copy_entries(src_child, new_dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
+                copy_entries(src_child, new_dest_child, new_dest_dir, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
               end
             end
           else
             if options[:dry_run]
               puts "Would create #{dest_entry.path_for_printing}"
             else
-              dest_entry.parent.create_child(src_entry.name, src_entry.read)
+              new_dest_parent.create_child(src_entry.name, src_entry.read)
               puts "Created #{dest_entry.path_for_printing}"
             end
           end
@@ -274,7 +274,7 @@ module ChefFS
             # If both are directories, recurse into their children
             if recurse_depth != 0
               child_pairs(src_entry, dest_entry).each do |src_child, dest_child|
-                copy_entries(src_child, dest_child, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
+                copy_entries(src_child, dest_child, dest_entry, recurse_depth ? recurse_depth - 1 : recurse_depth, options)
               end
             end
           else
@@ -314,7 +314,9 @@ module ChefFS
       parent = entry.parent
       if !parent.exists?
         parent_parent = get_or_create_parent(entry.parent, options)
-        if !options[:dry_run]
+        if options[:dry_run]
+          puts "Would create #{parent.path_for_printing}"
+        else
           parent = parent_parent.create_child(parent.name, true)
           puts "Created #{parent.path_for_printing}"
         end
