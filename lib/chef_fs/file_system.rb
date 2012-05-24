@@ -224,13 +224,14 @@ module ChefFS
         end
 
       elsif !dest_entry.exists?
-        if dest_entry.parent.can_have_child?(src_entry.name, src_entry.dir?)
+        dest_parent = get_or_create_parent(dest_entry, options)
+        if dest_parent.can_have_child?(src_entry.name, src_entry.dir?)
           if src_entry.dir?
             if options[:dry_run]
               puts "Would create #{dest_entry.path_for_printing}"
-              new_dest_dir = dest_entry.parent.child(src_entry.name)
+              new_dest_dir = dest_parent.child(src_entry.name)
             else
-              new_dest_dir = dest_entry.parent.create_child(src_entry.name, nil)
+              new_dest_dir = dest_parent.create_child(src_entry.name, nil)
               puts "Created #{dest_entry.path_for_printing}/"
             end
             # Directory creation is recursive.
@@ -286,6 +287,7 @@ module ChefFS
             Chef::Log.error("File #{dest_entry.path_for_printing} is a directory while file #{dest_entry.path_for_printing} is a regular file\n")
             return
           else
+
             # Both are files!  Copy them unless we're sure they are the same.
             if options[:force]
               should_copy = true
@@ -306,6 +308,20 @@ module ChefFS
           end
         end
       end
+    end
+
+    def self.get_or_create_parent(entry, options)
+      parent = entry.parent
+      if !parent.exists?
+        parent_parent = get_or_create_parent(entry.parent, options)
+        if options[:dry_run]
+          puts "Would create #{parent.path_for_printing}"
+        else
+          parent = parent_parent.create_child(parent.name, true)
+          puts "Created #{parent.path_for_printing}"
+        end
+      end
+      return parent
     end
 
   end

@@ -25,7 +25,11 @@ module ChefFS
 
       def exists?
         if @exists.nil?
-          @exists = parent.children.any? { |child| child.name == name }
+          begin
+            @exists = parent.children.any? { |child| child.name == name }
+          rescue ChefFS::FileSystem::NotFoundError
+            @exists = false
+          end
         end
         @exists
       end
