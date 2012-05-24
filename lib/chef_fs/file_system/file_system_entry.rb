@@ -40,9 +40,13 @@ module ChefFS
         File.directory?(file_path)
       end
 
-      def delete
+      def delete(recurse)
         if dir?
-          FileUtils.rm_rf(file_path)
+          if recurse
+            FileUtils.rm_rf(file_path)
+          else
+            File.rmdir(file_path)
+          end
         else
           File.delete(file_path)
         end

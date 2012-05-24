@@ -13,14 +13,14 @@ class Chef
         pattern_args.each do |pattern|
           ChefFS::FileSystem.list(chef_fs, pattern) do |result|
             if result.dir?
-              STDERR.puts "#{format_path(result.path)}: is a directory" if pattern.exact_path
+              STDERR.puts "#{result.path_for_printing}: is a directory" if pattern.exact_path
             else
               begin
                 value = result.read
-                puts "#{format_path(result.path)}:"
+                puts "#{result.path_for_printing}:"
                 output(format_for_display(value))
               rescue ChefFS::FileSystem::NotFoundError
-                STDERR.puts "#{format_path(result.path)}: No such file or directory" if pattern.exact_path
+                STDERR.puts "#{result.path_for_printing}: No such file or directory"
               end
             end
           end

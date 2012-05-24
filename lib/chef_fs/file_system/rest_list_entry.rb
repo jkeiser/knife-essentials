@@ -34,7 +34,7 @@ module ChefFS
         @exists
       end
 
-      def delete
+      def delete(recurse)
         begin
           rest.delete_rest(api_path)
         rescue Net::HTTPServerException

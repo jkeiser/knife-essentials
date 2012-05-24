@@ -59,7 +59,6 @@ module ChefFS
       def _make_child_entry(name, exists = nil)
         RestListEntry.new(name, self, exists)
       end
-
     end
   end
 end

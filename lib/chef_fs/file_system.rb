@@ -96,9 +96,9 @@ module ChefFS
     #
     def self.copy_to(pattern, src_root, dest_root, recurse_depth, options)
       found_result = false
-      list_pairs(pattern, src_root, dest_root) do |a, b|
+      list_pairs(pattern, src_root, dest_root) do |src, dest|
         found_result = true
-        copy_entries(a, b, recurse_depth, options)
+        copy_entries(src, dest, recurse_depth, options)
       end
       if !found_result && pattern.exact_path
         puts "#{pattern}: No such file or directory on remote or local"
@@ -215,8 +215,8 @@ module ChefFS
             if options[:dry_run]
               puts "Would delete #{dest_entry.path_for_printing}"
             else
-              dest_entry.delete
-              puts "Delete extra entry #{dest_entry.path_for_printing} (purge is on)"
+              dest_entry.delete(true)
+              puts "Deleted extra entry #{dest_entry.path_for_printing} (purge is on)"
             end
           else
             Chef::Log.info("Not deleting extra entry #{dest_entry.path_for_printing} (purge is off)")
@@ -314,9 +314,7 @@ module ChefFS
       parent = entry.parent
       if !parent.exists?
         parent_parent = get_or_create_parent(entry.parent, options)
-        if options[:dry_run]
-          puts "Would create #{parent.path_for_printing}"
-        else
+        if !options[:dry_run]
           parent = parent_parent.create_child(parent.name, true)
           puts "Created #{parent.path_for_printing}"
         end

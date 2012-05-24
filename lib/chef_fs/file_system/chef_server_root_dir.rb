@@ -50,12 +50,15 @@ module ChefFS
           if repo_mode == 'everything'
             result += [
               RestListDir.new("clients", self),
-              NodesDir.new(self)
+              NodesDir.new(self),
+              RestListDir.new("users", self)
             ]
           end
           result.sort_by { |child| child.name }
         end
       end
+
+      # Yeah, sorry, I'm not putting delete on this thing.
     end
   end
 end
