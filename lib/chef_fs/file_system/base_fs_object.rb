@@ -26,7 +26,12 @@ module ChefFS
 
       def path_for_printing
         if parent
-          ChefFS::PathUtils::join(parent.path_for_printing, name)
+          parent_path = parent.path_for_printing
+          if parent_path == '.'
+            name
+          else
+            ChefFS::PathUtils::join(parent.path_for_printing, name)
+          end
         else
           name
         end
