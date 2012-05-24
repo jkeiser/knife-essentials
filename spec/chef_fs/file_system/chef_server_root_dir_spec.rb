@@ -140,20 +140,20 @@ describe ChefFS::FileSystem::ChefServerRootDir do
       root_dir.path_for_printing.should == 'remote/'
     end
     it 'has correct children' do
-      root_dir.children.map { |child| child.name }.should =~ %w(clients cookbooks data_bags environments nodes roles)
+      root_dir.children.map { |child| child.name }.should =~ %w(clients cookbooks data_bags environments nodes roles users)
     end
     it 'can have children with the known names' do
-      %w(clients cookbooks data_bags environments nodes roles).each { |child| root_dir.can_have_child?(child, true).should be_true }
+      %w(clients cookbooks data_bags environments nodes roles users).each { |child| root_dir.can_have_child?(child, true).should be_true }
     end
     it 'cannot have files as children' do
-      %w(clients cookbooks data_bags environments nodes roles).each { |child| root_dir.can_have_child?(child, false).should be_false }
+      %w(clients cookbooks data_bags environments nodes roles users).each { |child| root_dir.can_have_child?(child, false).should be_false }
       root_dir.can_have_child?('blah', false).should be_false
     end
     it 'cannot have other child directories than the known names' do
       root_dir.can_have_child?('blah', true).should be_false
     end
     it 'child() responds to children' do
-      %w(clients cookbooks data_bags environments nodes roles).each { |child| root_dir.child(child).exists?.should be_true }
+      %w(clients cookbooks data_bags environments nodes roles users).each { |child| root_dir.child(child).exists?.should be_true }
     end
     context 'nonexistent child()' do
       let(:nonexistent_child) { root_dir.child('blah') }
@@ -206,6 +206,13 @@ describe ChefFS::FileSystem::ChefServerRootDir do
   context 'root.child(roles)' do
     let(:endpoint_name) { 'roles' }
     let(:endpoint) { root_dir.child('roles') }
+
+    it_behaves_like 'a json rest endpoint dir'
+  end
+
+  context 'root.child(users)' do
+    let(:endpoint_name) { 'users' }
+    let(:endpoint) { root_dir.child('users') }
 
     it_behaves_like 'a json rest endpoint dir'
   end
