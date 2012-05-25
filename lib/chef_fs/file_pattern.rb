@@ -53,7 +53,7 @@ module ChefFS
     def could_match_children?(path)
       return false if path == '' # Empty string is not a path
 
-      argument_is_absolute = !!(path[0] =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
+      argument_is_absolute = !!(path =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
       return false if is_absolute != argument_is_absolute
       path = path[1,path.length-1] if argument_is_absolute
 
@@ -89,10 +89,10 @@ module ChefFS
     #   abc/*/ghi.exact_child_name_under('abc') == nil
     #   abc/*/ghi.exact_child_name_under('abc/def') == 'ghi'
     #   abc/**/ghi.exact_child_name_under('abc/def') == nil
-    # 
+    #
     # This method assumes +could_match_children?(path)+ is +true+.
     def exact_child_name_under(path)
-      path = path[1,path.length-1] if !!(path[0] =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
+      path = path[1,path.length-1] if !!(path =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
       dirs_in_path = ChefFS::PathUtils::split(path).length
       return nil if exact_parts.length <= dirs_in_path
       return exact_parts[dirs_in_path]
@@ -130,7 +130,7 @@ module ChefFS
     #   abc/*/def.match?('abc/foo/def') == true
     #   abc/*/def.match?('abc/foo') == false
     def match?(path)
-      argument_is_absolute = !!(path[0] =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
+      argument_is_absolute = !!(path =~ /^#{ChefFS::PathUtils::regexp_path_separator}/)
       return false if is_absolute != argument_is_absolute
       path = path[1,path.length-1] if argument_is_absolute
       !!regexp.match(path)
@@ -267,15 +267,15 @@ module ChefFS
             exact = nil
             regexp << '.'
           else
-            if part[0] == '\\' && part.length == 2
+            if part[0,1] == '\\' && part.length == 2
               # backslash escapes are only supported on Unix, and are handled here by leaving the escape on (it means the same thing in a regex)
-              exact << part[1] if !exact.nil?
-              if regexp_escape_characters.include?(part[1])
+              exact << part[1,1] if !exact.nil?
+              if regexp_escape_characters.include?(part[1,1])
                 regexp << part
               else
-                regexp << part[1]
+                regexp << part[1,1]
               end
-            elsif part[0] == '[' && part.length > 1
+            elsif part[0,1] == '[' && part.length > 1
               # [...] happens only on Unix, and is handled here by *not* backslashing (it means the same thing in and out of regex)
               exact = nil
               regexp << part

@@ -40,8 +40,8 @@ module ChefFS
       end
 
       def children
-        @children ||= Dir.entries(file_path).select { |entry| entry != '.' && entry != '..' && !ignored?(entry) }
-                                            .map { |entry| ChefRepositoryFileSystemEntry.new(entry, self) }
+        @children ||= Dir.entries(file_path).select { |entry| entry != '.' && entry != '..' && !ignored?(entry) }.
+                                             map { |entry| ChefRepositoryFileSystemEntry.new(entry, self) }
       end
 
       attr_reader :chefignore

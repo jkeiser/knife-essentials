@@ -15,7 +15,7 @@ module ChefFS
       attr_reader :file_path
 
       def path_for_printing
-        ChefFS::PathUtils::relative_to(file_path, File.absolute_path(Dir.pwd))
+        ChefFS::PathUtils::relative_to(file_path, File.expand_path(Dir.pwd))
       end
 
       def children

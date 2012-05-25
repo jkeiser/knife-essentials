@@ -23,7 +23,7 @@ module ChefFS
     def self.join(*parts)
       return "" if parts.length == 0
       # Determine if it started with a slash
-      absolute = parts[0].length == 0 || parts[0].length > 0 && parts[0][0] =~ /^#{regexp_path_separator}/
+      absolute = parts[0].length == 0 || parts[0].length > 0 && parts[0] =~ /^#{regexp_path_separator}/
       # Remove leading and trailing slashes from each part so that the join will work (and the slash at the end will go away)
       parts = parts.map { |part| part.gsub(/^\/|\/$/, "") }
       # Don't join empty bits
