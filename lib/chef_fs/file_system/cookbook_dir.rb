@@ -114,21 +114,7 @@ module ChefFS
       end
 
       def copy_from(other)
-        other_cookbook_version = other.chef_object
-        # TODO this only works on the file system.  And it can't be broken into
-        # pieces.
-        begin
-          Chef::CookbookUploader.new(other_cookbook_version, other.parent.file_path).upload_cookbook
-        rescue Net::HTTPServerException => e
-          case e.response.code
-          when "409"
-            ui.error "Version #{cookbook.version} of cookbook #{cookbook.name} is frozen. Use --force to override."
-            Log.debug(e)
-            raise Exceptions::CookbookFrozen
-          else
-            raise
-          end
-        end
+        parent.upload_cookbook_from(other)
       end
 
       def rest

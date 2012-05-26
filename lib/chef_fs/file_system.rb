@@ -226,6 +226,17 @@ module ChefFS
 
       elsif !dest_entry.exists?
         if new_dest_parent.can_have_child?(src_entry.name, src_entry.dir?)
+          # If the entry can do a copy directly from filesystem, do that.
+          if new_dest_parent.respond_to?(:create_child_from)
+            if options[:dry_run]
+              puts "Would create #{dest_entry.path_for_printing}"
+            else
+              new_dest_parent.create_child_from(src_entry)
+              puts "Created #{dest_entry.path_for_printing}"
+            end
+            return
+          end
+
           if src_entry.dir?
             if options[:dry_run]
               puts "Would create #{dest_entry.path_for_printing}"
@@ -260,7 +271,6 @@ module ChefFS
             if options[:dry_run]
               puts "Would update #{dest_entry.path_for_printing}"
             else
-              puts "Updating #{dest_entry.path_for_printing} ..."
               dest_entry.copy_from(src_entry)
               puts "Updated #{dest_entry.path_for_printing}"
             end
