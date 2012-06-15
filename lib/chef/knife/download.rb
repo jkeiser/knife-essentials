@@ -4,7 +4,7 @@ require 'chef_fs/command_line'
 class Chef
   class Knife
     class Download < ChefFS::Knife
-      banner "download PATTERNS"
+      banner "knife download PATTERNS"
 
       common_options
 
