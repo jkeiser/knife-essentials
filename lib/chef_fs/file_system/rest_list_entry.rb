@@ -69,7 +69,11 @@ module ChefFS
         rescue ChefFS::FileSystem::NotFoundError
           return [ nil, nil, :none ]
         end
-        value = chef_object.to_hash
+        begin
+          value = chef_object.to_hash
+        rescue ChefFS::FileSystem::NotFoundError
+          return [ nil, :none, other_value ]
+        end
         are_same = (value == Chef::JSONCompat.from_json(other_value, :create_additions => false))
         [ are_same, Chef::JSONCompat.to_json_pretty(value), other_value ]
       end
