@@ -3,7 +3,7 @@ require 'json'
 class Chef
   class Knife
     class Raw < Chef::Knife
-      banner "raw REQUEST_PATH"
+      banner "knife raw REQUEST_PATH"
 
       option :method,
         :long => '--method METHOD',

@@ -4,7 +4,7 @@ require 'chef_fs/file_system'
 class Chef
   class Knife
     class List < ChefFS::Knife
-      banner "list [-dR] [PATTERN1 ... PATTERNn]"
+      banner "knife list [-dR] [PATTERN1 ... PATTERNn]"
 
       common_options
 
