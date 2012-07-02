@@ -37,7 +37,7 @@ module ChefFS
           begin
             other_value = other.read
           rescue ChefFS::FileSystem::NotFoundError
-            other_value = :none
+            return [ false, nil, :none ]
           end
           other_checksum = calc_checksum(other_value)
         end
