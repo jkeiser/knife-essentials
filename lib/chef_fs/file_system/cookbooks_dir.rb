@@ -26,7 +26,7 @@ module ChefFS
         # TODO this only works on the file system.  And it can't be broken into
         # pieces.
         begin
-          Chef::CookbookUploader.new(other_cookbook_version, other.parent.file_path).upload_cookbook
+          Chef::CookbookUploader.new(other_cookbook_version, other.parent.file_path).upload_cookbooks
         rescue Net::HTTPServerException => e
           case e.response.code
           when "409"
