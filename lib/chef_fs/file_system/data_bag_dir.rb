@@ -27,6 +27,16 @@ module ChefFS
         @exists
       end
 
+      def create_child(name, file_contents)
+        json = Chef::JSONCompat.from_json(file_contents).to_hash
+        id = name[0,name.length-5]
+        if json.include?('id') && json['id'] != id
+          raise "ID in #{path_for_printing}/#{name} must be '#{id}' (is '#{json['id']}')"
+        end
+        rest.post_rest(api_path, json)
+        _make_child_entry(name, true)
+      end
+
       def _make_child_entry(name, exists = nil)
         DataBagItem.new(name, self, exists)
       end
