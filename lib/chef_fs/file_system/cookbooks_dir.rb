@@ -26,7 +26,15 @@ module ChefFS
         # TODO this only works on the file system.  And it can't be broken into
         # pieces.
         begin
-          Chef::CookbookUploader.new(other_cookbook_version, other.parent.file_path).upload_cookbook
+          uploader = Chef::CookbookUploader.new(other_cookbook_version, other.parent.file_path)
+          # Chef 11 changes this API
+          if uploader.respond_to?(:upload_cookbook)
+            puts "upload_cookbook"
+            uploader.upload_cookbook
+          else
+            puts "upload_cookbooks"
+            uploader.upload_cookbooks
+          end
         rescue Net::HTTPServerException => e
           case e.response.code
           when "409"
