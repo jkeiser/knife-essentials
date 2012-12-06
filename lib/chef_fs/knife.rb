@@ -43,7 +43,7 @@ module ChefFS
     end
 
     def chef_repo
-      @chef_repo ||= File.expand_path(File.join(Chef::Config.cookbook_path, ".."))
+      @chef_repo ||= File.expand_path(File.join(Array(Chef::Config.cookbook_path).first, ".."))
     end
 
     def format_path(path)
