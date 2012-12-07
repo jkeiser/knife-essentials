@@ -63,7 +63,7 @@ describe 'diff' do
     it 'ChefFS::CommandLine.diff(/)' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, nil, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
       end
       results.should =~ [
         'diff --knife a/both_dirs/sub_both_files_different b/both_dirs/sub_both_files_different
@@ -139,7 +139,7 @@ new file
     it 'ChefFS::CommandLine.diff(/both_dirs)' do
       results = []
       ChefFS::CommandLine.diff(pattern('/both_dirs'), a, b, nil, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
       end
       results.should =~ [
         'diff --knife a/both_dirs/sub_both_files_different b/both_dirs/sub_both_files_different
@@ -181,7 +181,7 @@ new file
     it 'ChefFS::CommandLine.diff(/) with depth 1' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, 1, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
       end
       results.should =~ [
 'Common subdirectories: /both_dirs
@@ -215,7 +215,7 @@ new file
     it 'ChefFS::CommandLine.diff(/*_*) with depth 0' do
       results = []
       ChefFS::CommandLine.diff(pattern('/*_*'), a, b, 0, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
       end
       results.should =~ [
 'Common subdirectories: /both_dirs
@@ -249,7 +249,7 @@ new file
     it 'ChefFS::CommandLine.diff(/) in name-only mode' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, nil, :name_only) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
       end
       results.should =~ [
           "b/both_dirs/sub_both_files_different\n",
@@ -275,7 +275,7 @@ new file
     it 'ChefFS::CommandLine.diff(/) in name-status mode' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, nil, :name_status) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} -\d\d\d\d/, ' DATE')
+        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
       end
       results.should =~ [
           "M\tb/both_dirs/sub_both_files_different\n",
