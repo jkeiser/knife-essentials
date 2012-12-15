@@ -1,8 +1,8 @@
 require 'bundler'
 require 'rubygems'
-require 'rake/gempackagetask'
-require 'rspec/core/rake_task'
+require 'rubygems/package_task'
 require 'rdoc/task'
+require 'rspec/core/rake_task'
 
 Bundler::GemHelper.install_tasks
 
