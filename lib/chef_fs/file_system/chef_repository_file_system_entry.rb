@@ -68,8 +68,16 @@ module ChefFS
       end
 
       def children
-        @children ||= Dir.entries(file_path).select { |entry| entry != '.' && entry != '..' && !ignored?(entry) }.
-                                             map { |entry| ChefRepositoryFileSystemEntry.new(entry, self) }
+        @children ||= begin
+          file_paths = Array(File.basename(file_path) == 'cookbooks' ? Chef::Config.cookbook_path : file_path)
+          childs = []
+          file_paths.each do |file_path|
+            childs += Dir.entries(file_path).
+              select { |entry| entry != '.' && entry != '..' && !ignored?(entry) }.
+              map { |entry| ChefRepositoryFileSystemEntry.new(entry, self, "#{file_path}/#{entry}") }
+          end
+          childs
+        end
       end
 
       attr_reader :chefignore
