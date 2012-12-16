@@ -1,69 +1,94 @@
+#
+# Author:: John Keiser (<jkeiser@opscode.com>)
+# Copyright:: Copyright (c) 2012 Opscode, Inc.
+# License:: Apache License, Version 2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 require 'support/spec_helper'
 require 'chef_fs/file_pattern'
 require 'chef_fs/command_line'
 
-describe 'diff' do
+# Removes the date stamp from the diff and replaces it with ' DATE'
+# example match: "/dev/null\t2012-10-16 16:15:54.000000000 +0000"
+# windows match: "--- /dev/null\tTue Oct 16 18:04:34 2012"
+def remove_date(diff)
+  diff.gsub(/([+-]{3}.*)\t.*/, '\1 DATE')
+end
+
+describe 'diff', :uses_diff => true do
   include FileSystemSupport
 
-	context 'with two filesystems with all types of difference' do
-		let(:a) {
-			memory_fs('a', {
-				:both_dirs => {
-					:sub_both_dirs => { :subsub => nil },
+  context 'with two filesystems with all types of difference' do
+    let(:a) {
+      memory_fs('a', {
+        :both_dirs => {
+          :sub_both_dirs => { :subsub => nil },
           :sub_both_files => nil,
           :sub_both_files_different => "a\n",
-					:sub_both_dirs_empty => {},
+          :sub_both_dirs_empty => {},
           :sub_dirs_empty_in_a_filled_in_b => {},
           :sub_dirs_empty_in_b_filled_in_a => { :subsub => nil },
-					:sub_a_only_dir => { :subsub => nil },
-					:sub_a_only_file => nil,
-					:sub_dir_in_a_file_in_b => {},
-					:sub_file_in_a_dir_in_b => nil
-				},
-				:both_files => nil,
+          :sub_a_only_dir => { :subsub => nil },
+          :sub_a_only_file => nil,
+          :sub_dir_in_a_file_in_b => {},
+          :sub_file_in_a_dir_in_b => nil
+        },
+        :both_files => nil,
         :both_files_different => "a\n",
         :both_dirs_empty => {},
         :dirs_empty_in_a_filled_in_b => {},
         :dirs_empty_in_b_filled_in_a => { :subsub => nil },
         :dirs_in_a_cannot_be_in_b => {},
         :file_in_a_cannot_be_in_b => nil,
-				:a_only_dir => { :subsub => nil },
-				:a_only_file => nil,
-				:dir_in_a_file_in_b => {},
-				:file_in_a_dir_in_b => nil
-			}, /cannot_be_in_a/)
-		}
-		let(:b) {
-			memory_fs('b', {
-				:both_dirs => {
-					:sub_both_dirs => { :subsub => nil },
-					:sub_both_files => nil,
+        :a_only_dir => { :subsub => nil },
+        :a_only_file => nil,
+        :dir_in_a_file_in_b => {},
+        :file_in_a_dir_in_b => nil
+      }, /cannot_be_in_a/)
+    }
+    let(:b) {
+      memory_fs('b', {
+        :both_dirs => {
+          :sub_both_dirs => { :subsub => nil },
+          :sub_both_files => nil,
           :sub_both_files_different => "b\n",
-					:sub_both_dirs_empty => {},
+          :sub_both_dirs_empty => {},
           :sub_dirs_empty_in_a_filled_in_b => { :subsub => nil },
           :sub_dirs_empty_in_b_filled_in_a => {},
-					:sub_b_only_dir => { :subsub => nil },
-					:sub_b_only_file => nil,
-					:sub_dir_in_a_file_in_b => nil,
-					:sub_file_in_a_dir_in_b => {}
-				},
-				:both_files => nil,
+          :sub_b_only_dir => { :subsub => nil },
+          :sub_b_only_file => nil,
+          :sub_dir_in_a_file_in_b => nil,
+          :sub_file_in_a_dir_in_b => {}
+        },
+        :both_files => nil,
         :both_files_different => "b\n",
-				:both_dirs_empty => {},
+        :both_dirs_empty => {},
         :dirs_empty_in_a_filled_in_b => { :subsub => nil },
         :dirs_empty_in_b_filled_in_a => {},
         :dirs_in_b_cannot_be_in_a => {},
         :file_in_b_cannot_be_in_a => nil,
-				:b_only_dir => { :subsub => nil },
-				:b_only_file => nil,
-				:dir_in_a_file_in_b => nil,
-				:file_in_a_dir_in_b => {}
-			}, /cannot_be_in_b/)
-		}
+        :b_only_dir => { :subsub => nil },
+        :b_only_file => nil,
+        :dir_in_a_file_in_b => nil,
+        :file_in_a_dir_in_b => {}
+      }, /cannot_be_in_b/)
+    }
     it 'ChefFS::CommandLine.diff(/)' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, nil, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
+        results << remove_date(diff)
       end
       results.should =~ [
         'diff --knife a/both_dirs/sub_both_files_different b/both_dirs/sub_both_files_different
@@ -139,7 +164,7 @@ new file
     it 'ChefFS::CommandLine.diff(/both_dirs)' do
       results = []
       ChefFS::CommandLine.diff(pattern('/both_dirs'), a, b, nil, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
+        results << remove_date(diff)
       end
       results.should =~ [
         'diff --knife a/both_dirs/sub_both_files_different b/both_dirs/sub_both_files_different
@@ -181,7 +206,7 @@ new file
     it 'ChefFS::CommandLine.diff(/) with depth 1' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, 1, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
+        results << remove_date(diff)
       end
       results.should =~ [
 'Common subdirectories: /both_dirs
@@ -215,7 +240,7 @@ new file
     it 'ChefFS::CommandLine.diff(/*_*) with depth 0' do
       results = []
       ChefFS::CommandLine.diff(pattern('/*_*'), a, b, 0, nil) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
+        results << remove_date(diff)
       end
       results.should =~ [
 'Common subdirectories: /both_dirs
@@ -249,7 +274,7 @@ new file
     it 'ChefFS::CommandLine.diff(/) in name-only mode' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, nil, :name_only) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
+        results << remove_date(diff)
       end
       results.should =~ [
           "b/both_dirs/sub_both_files_different\n",
@@ -275,7 +300,7 @@ new file
     it 'ChefFS::CommandLine.diff(/) in name-status mode' do
       results = []
       ChefFS::CommandLine.diff(pattern('/'), a, b, nil, :name_status) do |diff|
-        results << diff.gsub(/\s+\d\d\d\d-\d\d-\d\d\s\d?\d:\d\d:\d\d\.\d{9} [-+]\d\d\d\d/, ' DATE')
+        results << remove_date(diff)
       end
       results.should =~ [
           "M\tb/both_dirs/sub_both_files_different\n",
