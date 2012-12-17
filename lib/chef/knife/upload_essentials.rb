@@ -3,7 +3,9 @@ require 'chef_fs/command_line'
 
 class Chef
   class Knife
-    class Upload < ChefFS::Knife
+    remove_const(:Upload) if const_defined?(:Upload) # override Chef's version
+    class Upload < ::ChefFS::Knife
+      ChefFS = ::ChefFS
       banner "knife upload PATTERNS"
 
       common_options

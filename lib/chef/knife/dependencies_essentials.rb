@@ -3,7 +3,9 @@ require 'chef/chef_fs/file_system'
 
 class Chef
   class Knife
-    class Dependencies < Chef::ChefFS::Knife
+    remove_const(:Dependencies) if const_defined?(:Dependencies) # override Chef's version
+    class Dependencies < ::ChefFS::Knife
+      ChefFS = ::ChefFS
       banner "knife dependencies PATTERN1 [PATTERNn]"
 
       common_options
@@ -31,7 +33,7 @@ class Chef
         @root = config[:remote] ? chef_fs : local_fs
         dependencies = {}
         pattern_args.each do |pattern|
-          Chef::ChefFS::FileSystem.list(@root, pattern) do |entry|
+          ChefFS::FileSystem.list(@root, pattern) do |entry|
             if config[:tree]
               print_dependencies_tree(entry, dependencies)
             else
@@ -45,7 +47,7 @@ class Chef
         if !dependencies[entry.path]
           dependencies[entry.path] = get_dependencies(entry)
           dependencies[entry.path].each do |child|
-            child_entry = Chef::ChefFS::FileSystem.resolve_path(@root, child)
+            child_entry = ChefFS::FileSystem.resolve_path(@root, child)
             print_flattened_dependencies(child_entry, dependencies)
           end
           puts format_path(entry.path)
@@ -58,7 +60,7 @@ class Chef
         if !printed[entry.path] && (config[:recurse] || depth <= 1)
           printed[entry.path] = true
           dependencies[entry.path].each do |child|
-            child_entry = Chef::ChefFS::FileSystem.resolve_path(@root, child)
+            child_entry = ChefFS::FileSystem.resolve_path(@root, child)
             print_dependencies_tree(child_entry, dependencies, printed, depth+1)
           end
         end
@@ -67,7 +69,7 @@ class Chef
       def get_dependencies(entry)
         begin
           object = entry.chef_object
-        rescue Chef::ChefFS::FileSystem::NotFoundError
+        rescue ChefFS::FileSystem::NotFoundError
           STDERR.puts "#{result.path_for_printing}: No such file or directory"
           return []
         end

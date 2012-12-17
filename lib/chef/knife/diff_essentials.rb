@@ -3,7 +3,9 @@ require 'chef_fs/command_line'
 
 class Chef
   class Knife
-    class Diff < ChefFS::Knife
+    remove_const(:Diff) if const_defined?(:Diff) # override Chef's version
+    class Diff < ::ChefFS::Knife
+      ChefFS = ::ChefFS
       banner "knife diff PATTERNS"
 
       common_options

@@ -3,7 +3,9 @@ require 'chef_fs/file_system'
 
 class Chef
   class Knife
-    class Show < ChefFS::Knife
+    remove_const(:Show) if const_defined?(:Show) # override Chef's version
+    class Show < ::ChefFS::Knife
+      ChefFS = ::ChefFS
       banner "knife show [PATTERN1 ... PATTERNn]"
 
       common_options

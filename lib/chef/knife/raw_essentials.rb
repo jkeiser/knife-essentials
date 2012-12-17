@@ -2,7 +2,9 @@ require 'json'
 
 class Chef
   class Knife
+    remove_const(:Raw) if const_defined?(:Raw) # override Chef's version
     class Raw < Chef::Knife
+      ChefFS = ::ChefFS
       banner "knife raw REQUEST_PATH"
 
       option :method,
@@ -42,8 +44,8 @@ class Chef
         puts api_request(chef_rest, config[:method].to_sym, chef_rest.create_url(name_args[0]), {}, data)
       end
 
-      ACCEPT_ENCODING = "Accept-Encoding".freeze unless ACCEPT_ENCODING
-      ENCODING_GZIP_DEFLATE = "gzip;q=1.0,deflate;q=0.6,identity;q=0.3".freeze unless ENCODING_GZIP_DEFLATE
+      ACCEPT_ENCODING = "Accept-Encoding".freeze
+      ENCODING_GZIP_DEFLATE = "gzip;q=1.0,deflate;q=0.6,identity;q=0.3".freeze
 
       def redirected_to(response)
         return nil  unless response.kind_of?(Net::HTTPRedirection)
