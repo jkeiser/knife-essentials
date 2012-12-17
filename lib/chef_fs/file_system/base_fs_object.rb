@@ -113,7 +113,7 @@ module ChefFS
 
       # Important directory attributes: name, parent, path, root
       # Overridable attributes: dir?, child(name), path_for_printing
-      # Abstract: read, write, delete, children
+      # Abstract: read, write, delete, children, can_have_child?, create_child, compare_to
     end
   end
 end

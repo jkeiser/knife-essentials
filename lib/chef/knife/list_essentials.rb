@@ -3,7 +3,9 @@ require 'chef_fs/file_system'
 
 class Chef
   class Knife
-    class List < ChefFS::Knife
+    remove_const(:List) if const_defined?(:List) # override Chef's version
+    class List < ::ChefFS::Knife
+      ChefFS = ::ChefFS
       banner "knife list [-dR] [PATTERN1 ... PATTERNn]"
 
       common_options
@@ -16,6 +18,10 @@ class Chef
         :short => '-d',
         :boolean => true,
         :description => "When directories match the pattern, do not show the directories' children."
+      option :local,
+        :long => '--local',
+        :boolean => true,
+        :description => "List local directory instead of remote"
 
       def run
         patterns = name_args.length == 0 ? [""] : name_args
@@ -24,7 +30,7 @@ class Chef
         results = []
         dir_results = []
         pattern_args_from(patterns).each do |pattern|
-          ChefFS::FileSystem.list(chef_fs, pattern) do |result|
+          ChefFS::FileSystem.list(options[:local] ? local_fs : chef_fs, pattern) do |result|
             if result.dir? && !config[:bare_directories]
               dir_results += add_dir_result(result)
             elsif result.exists?
