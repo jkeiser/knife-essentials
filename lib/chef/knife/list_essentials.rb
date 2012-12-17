@@ -30,7 +30,7 @@ class Chef
         results = []
         dir_results = []
         pattern_args_from(patterns).each do |pattern|
-          ChefFS::FileSystem.list(options[:local] ? local_fs : chef_fs, pattern) do |result|
+          ChefFS::FileSystem.list(config[:local] ? local_fs : chef_fs, pattern) do |result|
             if result.dir? && !config[:bare_directories]
               dir_results += add_dir_result(result)
             elsif result.exists?
