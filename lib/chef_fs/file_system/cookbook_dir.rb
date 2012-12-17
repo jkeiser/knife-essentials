@@ -112,6 +112,14 @@ module ChefFS
         raise ChefFS::FileSystem::NotFoundError, path_for_printing
       end
 
+      def delete(recurse)
+        if recurse
+          rest.delete_rest(api_path)
+        else
+          raise ChefFS::FileSystem::MustDeleteRecursivelyError.new, "#{path_for_printing} must be deleted recursively"
+        end
+      end
+
       def exists?
         if !@versions
           child = parent.children.select { |child| child.name == name }.first
