@@ -28,17 +28,16 @@ require 'chef/client'
 module ChefFS
   module FileSystem
     # ChefRepositoryFileSystemEntry works just like FileSystemEntry,
-    # except it pretends files in /cookbooks/chefignore don't exist
-    # and it can inflate Chef objects
+    # except can inflate Chef objects
     class ChefRepositoryFileSystemEntry < FileSystemEntry
       def initialize(name, parent, file_path = nil)
         super(name, parent, file_path)
         # Load /cookbooks/chefignore
-        if name == "cookbooks" && path == "/cookbooks" # We check name first because it's a faster fail than path
+        if path == '/cookbooks'
           @chefignore = Chef::Cookbook::Chefignore.new(self.file_path)
         # If we are a cookbook or a cookbook subdirectory, empty directories
         # underneath us are ignored (since they cannot be uploaded)
-        elsif parent && parent.name === "cookbooks" && parent.path == "/cookbooks"
+        elsif parent.path == '/cookbooks'
           @ignore_empty_directories = true
         elsif parent && parent.ignore_empty_directories?
           @ignore_empty_directories = true
@@ -53,7 +52,7 @@ module ChefFS
 
       def chef_object
         begin
-          if parent.path == "/cookbooks"
+          if parent.path == '/cookbooks'
             loader = Chef::Cookbook::CookbookVersionLoader.new(file_path, parent.chefignore)
             loader.load_cookbooks
             return loader.cookbook_version
@@ -68,21 +67,23 @@ module ChefFS
       end
 
       def children
-        @children ||= begin
-          file_paths = Array(File.basename(file_path) == 'cookbooks' ? Chef::Config.cookbook_path : file_path)
-          childs = []
-          file_paths.each do |file_path|
-            childs += Dir.entries(file_path).
+        @children ||=
+          Dir.entries(file_path).
               select { |entry| entry != '.' && entry != '..' && !ignored?(entry) }.
-              map { |entry| ChefRepositoryFileSystemEntry.new(entry, self, "#{file_path}/#{entry}") }
-          end
-          childs
-        end
+              map { |entry| ChefRepositoryFileSystemEntry.new(entry, self) }
       end
 
       attr_reader :chefignore
 
       private
+
+      def is_cookbooks_dir?
+        # We check name first because it's a faster fail than path
+        path == "/cookbooks"
+      end
+
+      def is_under_cookbooks?
+      end
 
       def ignored?(child_name)
         # empty directories inside a cookbook are ignored

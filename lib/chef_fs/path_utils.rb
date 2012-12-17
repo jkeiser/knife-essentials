@@ -23,7 +23,7 @@ module ChefFS
 
     # If you are in 'source', this is what you would have to type to reach 'dest'
     # relative_to('/a/b/c/d/e', '/a/b/x/y') == '../../c/d/e'
-    # relative_to('/a/b', '/a/b') == ''
+    # relative_to('/a/b', '/a/b') == '.'
     def self.relative_to(dest, source)
       # Skip past the common parts
       source_parts = ChefFS::PathUtils.split(source)
