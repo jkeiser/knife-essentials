@@ -1,5 +1,5 @@
-require 'chef/chef_fs/knife'
-require 'chef/chef_fs/file_system'
+require 'chef_fs/knife'
+require 'chef_fs/file_system'
 
 class Chef
   class Knife
