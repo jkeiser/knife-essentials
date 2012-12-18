@@ -3,10 +3,10 @@ require 'chef_fs/file_system'
 
 class Chef
   class Knife
-    remove_const(:Dependencies) if const_defined?(:Dependencies) # override Chef's version
-    class Dependencies < ::ChefFS::Knife
+    remove_const(:Deps) if const_defined?(:Deps) # override Chef's version
+    class Deps < ::ChefFS::Knife
       ChefFS = ::ChefFS
-      banner "knife dependencies PATTERN1 [PATTERNn]"
+      banner "knife deps PATTERN1 [PATTERNn]"
 
       common_options
 

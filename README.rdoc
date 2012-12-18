@@ -10,7 +10,7 @@ that is stored in the Chef server.
    knife download roles data_bags cookbooks/emacs
    knife upload apache*
    knife list data_bags/users
-   knife dependencies roles/base.json
+   knife deps roles/base.json
    cd cookbooks && knife show *base*
 
 More verbs will be added as time goes by.
@@ -106,9 +106,9 @@ Works just like 'ls', except it lists files on the server.
 Works just like +knife node show+, +knife role show+, etc. except there is One Verb To Rule
 Them All.
 
-== knife dependencies
+== knife deps
 
-    knife dependencies [pattern1 pattern2 ...]
+    knife deps [pattern1 pattern2 ...]
 
 Given a set of nodes, roles, or cookbooks, will traverse dependencies and show
 other roles, cookbooks, and environments that need to be loaded for them to
