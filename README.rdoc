@@ -10,7 +10,7 @@ that is stored in the Chef server.
    knife download roles data_bags cookbooks/emacs
    knife upload apache*
    knife list data_bags/users
-   knide dependencies roles/base.json
+   knife dependencies roles/base.json
    cd cookbooks && knife show *base*
 
 More verbs will be added as time goes by.
