@@ -3,7 +3,7 @@ require 'chef_fs/file_system'
 
 class Chef
   class Knife
-    remove_const(:Delete) if const_defined?(:Delete) # override Chef's version
+    remove_const(:Delete) if const_defined?(:Delete) && Delete.name == 'Chef::Knife::Delete' # override Chef's version
     class Delete < ::ChefFS::Knife
       ChefFS = ::ChefFS
       banner "knife delete [PATTERN1 ... PATTERNn]"
