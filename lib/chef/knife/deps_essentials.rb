@@ -3,7 +3,7 @@ require 'chef_fs/file_system'
 
 class Chef
   class Knife
-    remove_const(:Deps) if const_defined?(:Deps) # override Chef's version
+    remove_const(:Deps) if const_defined?(:Deps) && Deps.name == 'Chef::Knife::Deps' # override Chef's version
     class Deps < ::ChefFS::Knife
       ChefFS = ::ChefFS
       banner "knife deps PATTERN1 [PATTERNn]"

@@ -3,7 +3,7 @@ require 'chef_fs/command_line'
 
 class Chef
   class Knife
-    remove_const(:Download) if const_defined?(:Download) # override Chef's version
+    remove_const(:Download) if const_defined?(:Download) && Download.name == 'Chef::Knife::Download' # override Chef's version
     class Download < ::ChefFS::Knife
       ChefFS = ::ChefFS
       banner "knife download PATTERNS"

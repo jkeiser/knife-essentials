@@ -2,7 +2,7 @@ require 'json'
 
 class Chef
   class Knife
-    remove_const(:Raw) if const_defined?(:Raw) # override Chef's version
+    remove_const(:Raw) if const_defined?(:Raw) && Raw.name == 'Chef::Knife::Raw' # override Chef's version
     class Raw < Chef::Knife
       ChefFS = ::ChefFS
       banner "knife raw REQUEST_PATH"
