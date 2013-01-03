@@ -18,6 +18,7 @@
 
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/chef_repository_file_system_entry'
+require 'chef_fs/file_system/chef_repository_file_system_cookbooks_dir'
 require 'chef_fs/file_system/multiplexed_dir'
 
 module ChefFS
@@ -62,7 +63,11 @@ module ChefFS
         if paths.size == 0
           return nil
         end
-        dirs = paths.map { |path| ChefRepositoryFileSystemEntry.new(name, self, path) }
+        if name == 'cookbooks'
+          dirs = paths.map { |path| ChefRepositoryFileSystemCookbooksDir.new(name, self, path) }
+        else
+          dirs = paths.map { |path| ChefRepositoryFileSystemEntry.new(name, self, path) }
+        end
         MultiplexedDir.new(dirs)
       end
     end
