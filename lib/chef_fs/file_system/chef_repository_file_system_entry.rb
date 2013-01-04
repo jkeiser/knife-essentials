@@ -18,19 +18,15 @@
 
 require 'chef_fs/file_system/file_system_entry'
 require 'chef/cookbook/cookbook_version_loader'
-require 'chef/node'
-require 'chef/role'
-require 'chef/environment'
-require 'chef/data_bag_item'
-require 'chef/client'
 
 module ChefFS
   module FileSystem
     # ChefRepositoryFileSystemEntry works just like FileSystemEntry,
     # except can inflate Chef objects
     class ChefRepositoryFileSystemEntry < FileSystemEntry
-      def initialize(name, parent, file_path = nil, ignore_empty_directories = nil, chefignore = nil)
+      def initialize(name, parent, file_path = nil, json_class = nil)
         super(name, parent, file_path)
+        @json_class = json_class
       end
 
       def chefignore
@@ -41,6 +37,10 @@ module ChefFS
         parent.ignore_empty_directories?
       end
 
+      def json_class
+        @json_class || parent.json_class
+      end
+
       def chef_object
         begin
           if parent.path == '/cookbooks'
@@ -49,8 +49,10 @@ module ChefFS
             return loader.cookbook_version
           end
 
-          # Otherwise the information to inflate the object, is in the file (json_class).
-          return Chef::JSONCompat.from_json(read)
+          # Otherwise, inflate the file using the chosen JSON class (if any)
+          if json_class
+            return json_class.json_create(JSON.parse(read, :create_additions => false))
+          end
         rescue
           Chef::Log.error("Could not read #{path_for_printing} into a Chef object: #{$!}")
         end
