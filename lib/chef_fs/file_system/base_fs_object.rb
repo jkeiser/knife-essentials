@@ -108,7 +108,12 @@ module ChefFS
       #       are_same = (value == other_value)
       #     end
       def compare_to(other)
-        return nil
+        nil
+      end
+
+      def chef_object
+        raise ChefFS::FileSystem::NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
+        nil
       end
 
       # Important directory attributes: name, parent, path, root
