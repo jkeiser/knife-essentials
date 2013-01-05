@@ -4,6 +4,7 @@ require 'chef_fs/version'
 Gem::Specification.new do |s|
   s.name = "knife-essentials"
   s.version = ChefFS::VERSION
+  s.license = 'Apache 2.0'
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
   s.extra_rdoc_files = ["README.rdoc", "LICENSE"]
