@@ -6,7 +6,7 @@ class Chef
     remove_const(:List) if const_defined?(:List) && List.name == 'Chef::Knife::List' # override Chef's version
     class List < ::ChefFS::Knife
       ChefFS = ::ChefFS
-      banner "knife list [-dR] [PATTERN1 ... PATTERNn]"
+      banner "knife list [-dfR1p] [PATTERN1 ... PATTERNn]"
 
       common_options
 
@@ -23,6 +23,7 @@ class Chef
         :boolean => true,
         :description => "List local directory instead of remote"
       option :flat,
+        :short => '-f',
         :long => '--flat',
         :boolean => true,
         :description => "Show a list of filenames rather than the prettified ls-like output normally produced"
