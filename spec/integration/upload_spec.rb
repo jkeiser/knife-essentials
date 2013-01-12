@@ -1,7 +1,6 @@
 require 'support/integration_helper'
 require 'chef/knife/upload_essentials'
 require 'chef/knife/diff_essentials'
-require 'chef/knife/list_essentials'
 
 describe 'knife upload' do
   extend IntegrationSupport
@@ -198,7 +197,7 @@ EOM
 Updated remote/cookbooks/x
 Created remote/cookbooks/y
 Created remote/data_bags/x/z.json
-Created remote/data_bags/y/
+Created remote/data_bags/y
 Created remote/data_bags/y/zz.json
 Created remote/environments/y.json
 Created remote/roles/y.json
