@@ -21,6 +21,7 @@ require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbooks_dir'
 require 'chef_fs/file_system/data_bags_dir'
 require 'chef_fs/file_system/nodes_dir'
+require 'chef_fs/file_system/environments_dir'
 
 module ChefFS
   module FileSystem
@@ -62,7 +63,7 @@ module ChefFS
           result = [
             CookbooksDir.new(self),
             DataBagsDir.new(self),
-            RestListDir.new("environments", self),
+            EnvironmentsDir.new(self),
             RestListDir.new("roles", self)
           ]
           if repo_mode == 'everything'

@@ -28,6 +28,7 @@ module ChefFS
       end
 
       # Override children to respond to environment
+      # TODO let's not do this mmkay
       def children
         @children ||= begin
           env_api_path = environment ? "environments/#{environment}/#{api_path}" : api_path
