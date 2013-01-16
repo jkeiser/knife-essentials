@@ -19,7 +19,7 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_entry'
 require 'chef_fs/file_system/not_found_error'
-require 'chef_fs/file_system/operation_skipped_error'
+require 'chef_fs/file_system/default_environment_cannot_be_modified_error'
 
 module ChefFS
   module FileSystem
@@ -43,15 +43,13 @@ module ChefFS
         end
 
         def delete(recurse)
-          Chef::Log.warn("The default environment (#{name}) cannot be deleted.  Skipping.")
           raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
-          raise OperationSkippedError.new(:delete), "#{path_for_printing} cannot be deleted."
+          raise DefaultEnvironmentCannotBeModifiedError.new(:delete, self), "#{path_for_printing} cannot be deleted."
         end
 
         def write(file_contents)
-          Chef::Log.warn("The default environment (#{name}) cannot be deleted.  Skipping.")
           raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
-          raise OperationSkippedError.new(:write), "#{path_for_printing} cannot be updated."
+          raise DefaultEnvironmentCannotBeModifiedError.new(:write, self), "#{path_for_printing} cannot be updated."
         end
       end
     end

@@ -17,7 +17,7 @@
 #
 
 require 'chef_fs/path_utils'
-require 'chef_fs/file_system/operation_skipped_error'
+require 'chef_fs/file_system/default_environment_cannot_be_modified_error'
 require 'chef_fs/file_system/operation_not_allowed_error'
 
 module ChefFS
@@ -348,10 +348,10 @@ module ChefFS
             end
           end
         end
-      rescue OperationSkippedError
-        # If it was simply skipped, a warning has already been printed.
+      rescue DefaultEnvironmentCannotBeModifiedError => e
+        ui.warn "#{format_path.call(e.entry)} #{e.reason}."
       rescue OperationNotAllowedError => e
-        ui.error e.message
+        ui.error "#{format_path.call(e.entry)} #{e.reason}."
         error = true
       end
       error

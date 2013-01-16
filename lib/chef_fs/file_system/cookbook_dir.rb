@@ -116,7 +116,7 @@ module ChefFS
         if recurse
           rest.delete_rest(api_path)
         else
-          raise ChefFS::FileSystem::MustDeleteRecursivelyError.new, "#{path_for_printing} must be deleted recursively"
+          raise ChefFS::FileSystem::MustDeleteRecursivelyError.new(self), "#{path_for_printing} must be deleted recursively"
         end
       end
 

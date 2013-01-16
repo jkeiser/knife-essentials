@@ -21,9 +21,12 @@ require 'chef_fs/file_system/file_system_error'
 module ChefFS
   module FileSystem
     class MustDeleteRecursivelyError < FileSystemError
-      def initialize(cause = nil)
+      def initialize(entry, cause = nil)
         super(cause)
+        @entry = entry
       end
+
+      attr_reader :entry
     end
   end
 end
