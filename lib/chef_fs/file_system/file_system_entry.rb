@@ -19,6 +19,7 @@
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/not_found_error'
+require 'chef_fs/file_system/must_delete_recursively_error'
 require 'chef_fs/path_utils'
 require 'fileutils'
 
@@ -63,7 +64,11 @@ module ChefFS
           if recurse
             FileUtils.rm_rf(file_path)
           else
-            File.rmdir(file_path)
+            begin
+              Dir.rmdir(file_path)
+            rescue Errno::ENOTEMPTY
+              raise MustDeleteRecursivelyError.new(self, $!)
+            end
           end
         else
           File.delete(file_path)
