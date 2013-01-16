@@ -42,10 +42,6 @@ module ChefFS
           "cannot be read"
         end
       end
-
-      def message
-        "#{entry.path_for_printing} #{reason}"
-      end
     end
   end
 end

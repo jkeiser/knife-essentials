@@ -99,13 +99,13 @@ module ChefFS
 
       # Override children to report your *actual* list of children as an array.
       def children
-        raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
+        raise NotFoundError.new(self) if !exists?
         []
       end
 
       # Expand this entry into a chef object (Chef::Role, ::Node, etc.)
       def chef_object
-        raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
+        raise NotFoundError.new(self) if !exists?
         nil
       end
 
@@ -116,14 +116,14 @@ module ChefFS
       # your entry class, and will be called without actually reading the
       # file_contents.  This is used for knife upload /cookbooks/cookbookname.
       def create_child(name, file_contents)
-        raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
+        raise NotFoundError.new(self) if !exists?
         raise OperationNotAllowedError.new(:create_child, self)
       end
 
       # Delete this item, possibly recursively.  Entries MUST NOT delete a
       # directory unless recurse is true.
       def delete(recurse)
-        raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
+        raise NotFoundError.new(self) if !exists?
         raise OperationNotAllowedError.new(:delete, self)
       end
 
@@ -158,13 +158,13 @@ module ChefFS
 
       # Read the contents of this file entry.
       def read
-        raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
+        raise NotFoundError.new(self) if !exists?
         raise OperationNotAllowedError.new(:read, self)
       end
 
       # Write the contents of this file entry.
       def write(file_contents)
-        raise NotFoundError, "Nonexistent #{path_for_printing}" if !exists?
+        raise NotFoundError.new(self) if !exists?
         raise OperationNotAllowedError.new(:write, self)
       end
 

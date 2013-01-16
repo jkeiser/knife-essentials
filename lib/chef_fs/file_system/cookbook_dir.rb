@@ -109,7 +109,7 @@ module ChefFS
 
       def read
         # This will only be called if dir? is false, which means exists? is false.
-        raise ChefFS::FileSystem::NotFoundError, path_for_printing
+        raise ChefFS::FileSystem::NotFoundError.new(self)
       end
 
       def delete(recurse)
@@ -154,7 +154,7 @@ module ChefFS
 
         # The negative (not found) response is cached
         if @could_not_get_chef_object
-          raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_chef_object), "#{path_for_printing} not found"
+          raise ChefFS::FileSystem::NotFoundError.new(self, @could_not_get_chef_object)
         end
 
         begin
@@ -173,7 +173,7 @@ module ChefFS
         rescue Net::HTTPServerException
           if $!.response.code == "404"
             @could_not_get_chef_object = $!
-            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_chef_object), "#{path_for_printing} not found"
+            raise ChefFS::FileSystem::NotFoundError.new(self, @could_not_get_chef_object)
           else
             raise
           end
@@ -183,7 +183,7 @@ module ChefFS
         rescue Net::HTTPFatalError
           if $!.response.code == "500"
             @could_not_get_chef_object = $!
-            raise ChefFS::FileSystem::NotFoundError.new(@could_not_get_chef_object), "#{path_for_printing} not found"
+            raise ChefFS::FileSystem::NotFoundError.new(self, @could_not_get_chef_object)
           else
             raise
           end

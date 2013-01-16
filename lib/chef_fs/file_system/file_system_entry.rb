@@ -40,7 +40,7 @@ module ChefFS
         begin
           @children ||= Dir.entries(file_path).select { |entry| entry != '.' && entry != '..' }.map { |entry| FileSystemEntry.new(entry, self) }
         rescue Errno::ENOENT
-          raise ChefFS::FileSystem::NotFoundError.new($!), "#{file_path} not found"
+          raise ChefFS::FileSystem::NotFoundError.new(self, $!)
         end
       end
 
@@ -74,7 +74,7 @@ module ChefFS
         begin
           File.open(file_path, "rb") {|f| f.read}
         rescue Errno::ENOENT
-          raise ChefFS::FileSystem::NotFoundError.new($!), "#{file_path} not found"
+          raise ChefFS::FileSystem::NotFoundError.new(self, $!)
         end
       end
 

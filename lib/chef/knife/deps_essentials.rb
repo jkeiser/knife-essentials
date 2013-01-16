@@ -104,13 +104,13 @@ class Chef
             result
 
           elsif !entry.exists?
-            raise ChefFS::FileSystem::NotFoundError, "Nonexistent #{entry.path_for_printing}"
+            raise ChefFS::FileSystem::NotFoundError.new(entry)
 
           else
             []
           end
-        rescue ChefFS::FileSystem::NotFoundError
-          ui.error "#{format_path(entry.path)}: No such file or directory"
+        rescue ChefFS::FileSystem::NotFoundError => e
+          ui.error "#{format_path(e.entry.path)}: No such file or directory"
           self.exit_code = 2
           []
         end

@@ -46,7 +46,7 @@ module ChefFS
           rest.put_rest(api_path, json)
         rescue Net::HTTPServerException
           if $!.response.code == "404"
-            raise ChefFS::FileSystem::NotFoundError.new($!), "#{path_for_printing} not found"
+            raise ChefFS::FileSystem::NotFoundError.new(self, $!)
           else
             raise
           end

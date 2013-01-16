@@ -29,18 +29,6 @@ module ChefFS
       def exists?
         false
       end
-
-      def read
-        raise ChefFS::FileSystem::NotFoundError, "Nonexistent #{path_for_printing}"
-      end
-
-      def write(contents)
-        raise ChefFS::FileSystem::NotFoundError, "Nonexistent #{path_for_printing}"
-      end
-
-      def delete(recurse)
-        raise ChefFS::FileSystem::NotFoundError, "Nonexistent #{path_for_printing}"
-      end
     end
   end
 end
