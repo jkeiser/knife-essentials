@@ -37,7 +37,7 @@ module ChefFS
       attr_reader :child_paths
 
       def children
-        @children ||= child_paths.keys.map { |name| make_child_entry(name) }.select { |child| !child.nil? }
+        @children ||= child_paths.keys.sort.map { |name| make_child_entry(name) }.select { |child| !child.nil? }
       end
 
       def can_have_child?(name, is_dir)
