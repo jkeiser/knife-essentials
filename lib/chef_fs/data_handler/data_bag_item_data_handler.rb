@@ -18,6 +18,10 @@ module ChefFS
         })
       end
 
+      def preserve_key(key)
+        return key == 'id'
+      end
+
       def chef_class
         Chef::DataBagItem
       end

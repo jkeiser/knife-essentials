@@ -2,13 +2,17 @@ module ChefFS
   module DataHandler
     class DataHandlerBase
       def minimize(object, *keys)
-        default_object = default({}, *keys)
+        default_object = default(*keys)
         object.each_pair do |key, value|
-          if default_object[key] == value
+          if default_object[key] == value && !preserve_key(key)
             object.delete(key)
           end
         end
         object
+      end
+
+      def preserve_key(key)
+        false
       end
 
       def default(*keys)

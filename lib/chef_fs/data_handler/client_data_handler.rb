@@ -14,6 +14,10 @@ module ChefFS
         })
       end
 
+      def preserve_key(key)
+        return key == 'name'
+      end
+
       def chef_class
         Chef::ApiClient
       end

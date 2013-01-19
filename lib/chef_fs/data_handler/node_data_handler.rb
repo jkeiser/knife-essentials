@@ -20,6 +20,10 @@ module ChefFS
         result
       end
 
+      def preserve_key(key)
+        return key == 'name'
+      end
+
       def chef_class
         Chef::Node
       end
