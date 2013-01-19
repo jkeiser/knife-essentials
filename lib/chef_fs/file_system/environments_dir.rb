@@ -20,12 +20,13 @@ require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_entry'
 require 'chef_fs/file_system/not_found_error'
 require 'chef_fs/file_system/default_environment_cannot_be_modified_error'
+require 'chef_fs/data_handler/environment_data_handler'
 
 module ChefFS
   module FileSystem
     class EnvironmentsDir < RestListDir
       def initialize(parent)
-        super("environments", parent)
+        super("environments", parent, nil, ChefFS::DataHandler::EnvironmentDataHandler.new)
       end
 
       def _make_child_entry(name, exists = nil)

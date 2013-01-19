@@ -71,11 +71,7 @@ module ChefFS
       private
 
       def calc_checksum(value)
-        begin
-          Digest::MD5.hexdigest(value)
-        rescue ChefFS::FileSystem::NotFoundError
-          nil
-        end
+        Digest::MD5.hexdigest(value)
       end
     end
   end

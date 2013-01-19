@@ -23,6 +23,9 @@ require 'chef_fs/file_system/data_bags_dir'
 require 'chef_fs/file_system/nodes_dir'
 require 'chef_fs/file_system/environments_dir'
 require 'chef/rest'
+require 'chef_fs/data_handler/client_data_handler'
+require 'chef_fs/data_handler/role_data_handler'
+require 'chef_fs/data_handler/user_data_handler'
 
 module ChefFS
   module FileSystem
@@ -65,13 +68,13 @@ module ChefFS
             CookbooksDir.new(self),
             DataBagsDir.new(self),
             EnvironmentsDir.new(self),
-            RestListDir.new("roles", self)
+            RestListDir.new("roles", self, nil, ChefFS::DataHandler::RoleDataHandler.new)
           ]
           if repo_mode == 'everything'
             result += [
-              RestListDir.new("clients", self),
+              RestListDir.new("clients", self, nil, ChefFS::DataHandler::ClientDataHandler.new),
               NodesDir.new(self),
-              RestListDir.new("users", self)
+              RestListDir.new("users", self, nil, ChefFS::DataHandler::UserDataHandler.new)
             ]
           end
           result.sort_by { |child| child.name }

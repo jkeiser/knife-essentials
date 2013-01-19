@@ -20,12 +20,13 @@ require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/data_bag_item'
 require 'chef_fs/file_system/not_found_error'
 require 'chef_fs/file_system/must_delete_recursively_error'
+require 'chef_fs/data_handler/data_bag_item_data_handler'
 
 module ChefFS
   module FileSystem
     class DataBagDir < RestListDir
       def initialize(name, parent, exists = nil)
-        super(name, parent)
+        super(name, parent, nil, ChefFS::DataHandler::DataBagItemDataHandler.new)
         @exists = nil
       end
 
