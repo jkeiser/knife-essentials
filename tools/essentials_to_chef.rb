@@ -301,6 +301,7 @@ Dir.mktmpdir('essentials_repo') do |pristine_essentials_repo_path|
 
   commits = pristine_essentials_repo.commits('chef_sync', 'master')
   commits.reverse.each do |commit|
+    next if commit[:sha] == 'fa4cdbe9dbb1470dc5cb630a52be6b684a677802'
     puts ""
     puts "Applying #{commit[:sha]} (#{commit[:title].chomp}) ..."
     pristine_essentials_repo.git("checkout -q #{commit[:sha]}")
