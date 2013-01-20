@@ -3,9 +3,9 @@ require 'chef_fs/data_handler/data_handler_base'
 module ChefFS
   module DataHandler
     class UserDataHandler < DataHandlerBase
-      def self.normalize(user, name)
+      def normalize(user, entry)
         super(user, {
-          'name' => name,
+          'name' => remove_dot_json(entry.name),
           'admin' => false
         })
       end

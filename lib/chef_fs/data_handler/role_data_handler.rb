@@ -4,9 +4,9 @@ require 'chef/role'
 module ChefFS
   module DataHandler
     class RoleDataHandler < DataHandlerBase
-      def normalize(role, name)
+      def normalize(role, entry)
         result = super(role, {
-          'name' => name,
+          'name' => remove_dot_json(entry.name),
           'description' => '',
           'json_class' => 'Chef::Role',
           'chef_type' => 'role',

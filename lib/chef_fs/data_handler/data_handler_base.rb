@@ -1,8 +1,8 @@
 module ChefFS
   module DataHandler
     class DataHandlerBase
-      def minimize(object, *keys)
-        default_object = default(*keys)
+      def minimize(object, entry)
+        default_object = default(entry)
         object.each_pair do |key, value|
           if default_object[key] == value && !preserve_key(key)
             object.delete(key)
@@ -11,12 +11,19 @@ module ChefFS
         object
       end
 
+      def remove_dot_json(name)
+        if name.length < 5 || name[-5,5] != ".json"
+          raise "Invalid name #{path}: must end in .json"
+        end
+        name[0,name.length-5]
+      end
+
       def preserve_key(key)
         false
       end
 
-      def default(*keys)
-        normalize({}, *keys)
+      def default(entry)
+        normalize({}, entry)
       end
 
       def normalize(object, defaults)
@@ -33,7 +40,7 @@ module ChefFS
 
       def normalize_run_list(run_list)
         run_list.map{|item|
-          case item
+          case item.to_s
           when /^recipe\[.*\]$/
             item # explicit recipe
           when /^role\[.*\]$/

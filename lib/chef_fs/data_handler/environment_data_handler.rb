@@ -4,9 +4,9 @@ require 'chef/environment'
 module ChefFS
   module DataHandler
     class EnvironmentDataHandler < DataHandlerBase
-      def normalize(environment, name)
+      def normalize(environment, entry)
         super(environment, {
-          'name' => name,
+          'name' => remove_dot_json(entry.name),
           'description' => '',
           'cookbook_versions' => {},
           'default_attributes' => {},

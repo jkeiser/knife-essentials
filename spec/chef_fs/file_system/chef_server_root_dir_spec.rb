@@ -46,6 +46,7 @@ describe ChefFS::FileSystem::ChefServerRootDir do
           'a' => 'b'
         })
       endpoint_leaf.read.should == '{
+  "name": "achild",
   "a": "b"
 }'
     end

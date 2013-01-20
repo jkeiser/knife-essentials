@@ -4,7 +4,9 @@ require 'chef/cookbook/metadata'
 module ChefFS
   module DataHandler
     class CookbookDataHandler < DataHandlerBase
-      def normalize(cookbook, name, version)
+      def normalize(cookbook, entry)
+        version = entry.name
+        name = entry.parent.name
         result = super(cookbook, {
           'name' => "#{name}-#{version}",
           'version' => version,
