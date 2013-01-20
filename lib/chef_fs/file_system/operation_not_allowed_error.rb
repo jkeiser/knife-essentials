@@ -22,9 +22,8 @@ module ChefFS
   module FileSystem
     class OperationNotAllowedError < FileSystemError
       def initialize(operation, entry, cause = nil)
-        super(cause)
+        super(entry, cause)
         @operation = operation
-        @entry = entry
       end
 
       attr_reader :operation

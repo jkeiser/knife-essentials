@@ -20,10 +20,13 @@ require 'chef_fs/file_system/file_system_error'
 
 module ChefFS
   module FileSystem
-    class MustDeleteRecursivelyError < FileSystemError
-      def initialize(entry, cause = nil)
+    class OperationFailedError < FileSystemError
+      def initialize(operation, entry, cause = nil)
         super(entry, cause)
+        @operation = operation
       end
+
+      attr_reader :operation
     end
   end
 end
