@@ -130,17 +130,22 @@ module ChefFS
 
       def write(file_contents)
         begin
-          json = Chef::JSONCompat.from_json(file_contents).to_hash
+          object = Chef::JSONCompat.from_json(file_contents).to_hash
         rescue JSON::ParserError => e
           raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "Parse error reading JSON: #{e}"
         end
 
-        base_name = name[0,name.length-5]
-        if json['name'] != base_name
-          raise "Name in #{path_for_printing}/#{name} must be '#{base_name}' (is '#{json['name']}')"
+        if data_handler
+          object = data_handler.normalize(object, self)
         end
+
+        base_name = name[0,name.length-5]
+        if object['name'] != base_name
+          raise ChefFS::FileSystem::OperationFailedError.new(:write, self), "Name in #{path_for_printing}/#{name} must be '#{base_name}' (is '#{object['name']}')"
+        end
+
         begin
-          rest.put_rest(api_path, json)
+          rest.put_rest(api_path, object)
         rescue Net::HTTPServerException => e
           if e.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new(self, e)
