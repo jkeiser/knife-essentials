@@ -37,15 +37,18 @@ module ChefFS
         old_sign_on_redirect = rest.sign_on_redirect
         rest.sign_on_redirect = false
         begin
-          begin
-            tmpfile = rest.get_rest(file[:url], true)
-            tmpfile.open
-            tmpfile.read
-          ensure
-            tmpfile.close!
-          end
+          tmpfile = rest.get_rest(file[:url], true)
+        rescue Net::HTTPServerException => e
+          raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e)
         ensure
           rest.sign_on_redirect = old_sign_on_redirect
+        end
+
+        begin
+          tmpfile.open
+          tmpfile.read
+        ensure
+          tmpfile.close!
         end
       end
 
