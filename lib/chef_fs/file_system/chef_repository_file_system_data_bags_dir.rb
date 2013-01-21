@@ -17,37 +17,18 @@
 #
 
 require 'chef_fs/file_system/chef_repository_file_system_entry'
-require 'chef/cookbook/chefignore'
+require 'chef_fs/data_handler/data_bag_item_data_handler'
 
 module ChefFS
   module FileSystem
-    class ChefRepositoryFileSystemCookbooksDir < ChefRepositoryFileSystemEntry
-      def initialize(name, parent, file_path)
-        super(name, parent, file_path)
-        begin
-          @chefignore = Chef::Cookbook::Chefignore.new(self.file_path)
-        rescue Errno::EISDIR
-        rescue Errno::EACCES
-          # Work around a bug in Chefignore when chefignore is a directory
-        end
-      end
-
-      attr_reader :chefignore
-
-      def ignore_empty_directories?
-        true
+    class ChefRepositoryFileSystemDataBagsDir < ChefRepositoryFileSystemEntry
+      def initialize(name, parent, path = nil)
+        super(name, parent, path, ChefFS::DataHandler::DataBagItemDataHandler.new)
       end
 
       def ignored?(entry)
-        return true if !entry.dir?
-        return true if entry.name.start_with?('.')
-
-        result = super(entry)
-
-        if result
-          Chef::Log.warn("Cookbook '#{entry.name}' is empty or entirely chefignored at #{entry.path_for_printing}")
-        end
-        result
+        return true if entry.dir? && entry.name.start_with?('.')
+        super(entry)
       end
     end
   end
