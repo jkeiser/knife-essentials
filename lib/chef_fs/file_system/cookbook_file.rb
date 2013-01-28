@@ -39,7 +39,7 @@ module ChefFS
         begin
           tmpfile = rest.get_rest(file[:url], true)
         rescue Net::HTTPServerException => e
-          raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e)
+          raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e), "#{e.message} retrieving #{file[:url]}"
         ensure
           rest.sign_on_redirect = old_sign_on_redirect
         end
