@@ -1,1 +1,6 @@
 pkg
+
+# We need to be able to test multiple versions of Chef, both Chef 10 and 11 clients
+# So for now, we won't version Gemfile.lock
+/Gemfile.lock
+/Gemfile.local
