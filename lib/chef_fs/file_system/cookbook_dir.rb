@@ -73,8 +73,7 @@ module ChefFS
 
       def can_have_child?(name, is_dir)
         # A cookbook's root may not have directories unless they are segment directories
-        return false if !is_dir
-        return false if Chef::Config[:versioned_cookbooks] && name !~ VALID_VERSIONED_COOKBOOK_NAME
+        return name != 'root_files' && COOKBOOK_SEGMENT_INFO.keys.include?(name.to_sym) if is_dir
         return true
       end
 
@@ -131,12 +130,10 @@ module ChefFS
       # Probably want to cache this.
       def exists?
         return true if @versions_map
-        unless @versions_map
-          child = parent.child(name)
-          if child
-            @versions_map = child.versions_map
-            @version = child.version
-          end
+        child = parent.child(name, :force => true)
+        if child
+          @versions_map = child.versions_map
+          @version = child.version
         end
         !!@versions_map
       end

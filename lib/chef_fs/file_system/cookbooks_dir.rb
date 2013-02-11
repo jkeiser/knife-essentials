@@ -26,8 +26,8 @@ module ChefFS
         super("cookbooks", parent)
       end
 
-      def child(name)
-        result = self.children.select { |child| child.name == name }.first if @children
+      def child(name, options = {})
+        result = self.children.select { |child| child.name == name }.first if @children || options[:force]
         return result if result
         if Chef::Config[:versioned_cookbooks]
           raise "Cookbook name #{name} not valid: must be name-version" if name !~ ChefFS::FileSystem::CookbookDir::VALID_VERSIONED_COOKBOOK_NAME
@@ -49,8 +49,8 @@ module ChefFS
                                end
                              end
                            else
-                             proc do |key, value|
-                               CookbookDir.new(cookbook_name, self, :versions_map => value, :cookbook_name => key, :version => '_latest' )
+                             proc do |cookbook_name, value|
+                               CookbookDir.new(cookbook_name, self, :versions_map => value, :cookbook_name => cookbook_name, :version => '_latest' )
                              end
                            end
         _api_path = if Chef::Config[:versioned_cookbooks]
@@ -97,7 +97,9 @@ module ChefFS
       end
 
       def can_have_child?(name, is_dir)
-        is_dir
+        return false if !is_dir
+        return false if Chef::Config[:versioned_cookbooks] && name !~ ChefFS::FileSystem::CookbookDir::VALID_VERSIONED_COOKBOOK_NAME
+        return true
       end
     end
   end
