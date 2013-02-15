@@ -1,5 +1,8 @@
 require 'support/file_system_support'
 
+# TMP
+require 'ap'
+
 RSpec.configure do |config|
   config.filter_run :focus => true
   config.run_all_when_everything_filtered = true
