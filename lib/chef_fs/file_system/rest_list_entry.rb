@@ -74,7 +74,17 @@ module ChefFS
 
       def read
         # Minimize the value so the results don't look terrible
-        Chef::JSONCompat.to_json_pretty(minimize_value(chef_object.to_hash))
+        Chef::JSONCompat.to_json_pretty(minimize_value(chef_hash))
+      end
+
+      def chef_hash
+        JSON.parse(raw_request(api_path), :create_additions => false)
+      rescue Net::HTTPServerException => e
+        if $!.response.code == "404"
+          raise ChefFS::FileSystem::NotFoundError.new(self, $!)
+        else
+          raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e)
+        end
       end
 
       def chef_object
