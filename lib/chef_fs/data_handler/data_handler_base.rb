@@ -105,6 +105,7 @@ module ChefFS
         end
         result
       end
-    end
+
+    end # class DataHandlerBase
   end
 end
