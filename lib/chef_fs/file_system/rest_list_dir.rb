@@ -44,7 +44,7 @@ module ChefFS
 
       def children
         begin
-          @children ||= rest.get_rest(api_path).keys.sort.map do |key|
+          @children ||= chef_collection.keys.sort.map do |key|
             _make_child_entry("#{key}.json", true)
           end
         rescue Net::HTTPServerException => e
@@ -56,6 +56,10 @@ module ChefFS
         end
       end
 
+      def chef_collection
+        rest.get_rest(api_path)
+      end
+
       def identity_key
         'name'
       end
@@ -64,7 +68,7 @@ module ChefFS
       # DataBagDir.create_child as well.
       def create_child(name, file_contents)
         begin
-          object = Chef::JSONCompat.from_json(file_contents).to_hash
+          object = JSON.parse(file_contents, :create_additions => false)
         rescue JSON::ParserError => e
           raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self, e), "Parse error reading JSON creating child '#{name}': #{e}"
         end

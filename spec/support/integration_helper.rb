@@ -1,6 +1,7 @@
 #
 # Author:: John Keiser (<jkeiser@opscode.com>)
-# Copyright:: Copyright (c) 2012 Opscode, Inc.
+# Author:: Ho-Sheng Hsiao (<hosh@opscode.com>)
+# Copyright:: Copyright (c) 2012, 2013 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +27,144 @@ require 'support/spec_helper'
 
 module IntegrationSupport
   include ChefZero::RSpec
+
+  # Common layouts
+  def one_of_each_resource_in_chef_server
+    client 'x', '{}'
+    cookbook 'x', '1.0.0', { 'metadata.rb' => ['name "x"', 'version "1.0.0"'].join("\n") }
+    data_bag 'x', { 'y' => '{}' }
+    environment 'x', '{}'
+    node 'x', '{}'
+    role 'x', '{}'
+    user 'x', '{}'
+  end
+
+  def one_of_each_resource_in_repository(options = {})
+    file 'clients/x.json', <<EOM
+{}
+EOM
+    if metadata[:versioned_cookbooks]
+      file 'cookbooks/x-1.0.0/metadata.rb', ['name "x"', 'version "1.0.0"'].join("\n")
+    else
+      file 'cookbooks/x/metadata.rb', [ 'name "x"', 'version "1.0.0"'].join("\n")
+    end
+
+    file 'data_bags/x/y.json', <<EOM
+{
+  "id": "y"
+}
+EOM
+    file 'environments/_default.json', <<EOM
+{
+  "name": "_default",
+  "description": "The default Chef environment",
+  "cookbook_versions": {
+  },
+  "json_class": "Chef::Environment",
+  "chef_type": "environment",
+  "default_attributes": {
+  },
+  "override_attributes": {
+  }
+}
+EOM
+    file 'environments/x.json', <<EOM
+{
+  "chef_type": "environment",
+  "cookbook_versions": {
+  },
+  "default_attributes": {
+  },
+  "description": "",
+  "json_class": "Chef::Environment",
+  "name": "x",
+  "override_attributes": {
+  }
+}
+EOM
+    file 'nodes/x.json', <<EOM
+{}
+EOM
+    file 'roles/x.json', <<EOM
+{
+  "chef_type": "role",
+  "default_attributes": {
+  },
+  "description": "",
+  "env_run_lists": {
+  },
+  "json_class": "Chef::Role",
+  "name": "x",
+  "override_attributes": {
+  },
+  "run_list": [
+
+  ]
+}
+EOM
+    file 'users/x.json', <<EOM
+{}
+EOM
+  end
+
+  def extra_resources_in_repository
+      # Extra files not found in the standard resource set
+      file 'clients/y.json', { 'name' => 'y' }
+      if metadata[:versioned_cookbooks]
+        file 'cookbooks/x-1.0.0/blah.rb', ''
+        file 'cookbooks/x-2.0.0/metadata.rb', ['name "x"', 'version "2.0.0"'].join("\n")
+        file 'cookbooks/y-1.0.0/metadata.rb', ['name "y"', 'version "1.0.0"'].join("\n")
+      else
+        file 'cookbooks/x/blah.rb', ''
+        file 'cookbooks/y/metadata.rb', ['name "y"', 'version "1.0.0"'].join("\n")
+      end
+      file 'data_bags/x/z.json', <<EOM
+{
+  "id": "z"
+}
+EOM
+      file 'data_bags/y/zz.json', <<EOM
+{
+  "id": "zz"
+}
+EOM
+      file 'environments/y.json', <<EOM
+{
+  "chef_type": "environment",
+  "cookbook_versions": {
+  },
+  "default_attributes": {
+  },
+  "description": "",
+  "json_class": "Chef::Environment",
+  "name": "y",
+  "override_attributes": {
+  }
+}
+EOM
+      file 'nodes/y.json', { 'name' => 'y' }
+      file 'roles/y.json', <<EOM
+{
+  "chef_type": "role",
+  "default_attributes": {
+  },
+  "description": "",
+  "env_run_lists": {
+  },
+  "json_class": "Chef::Role",
+  "name": "y",
+  "override_attributes": {
+  },
+  "run_list": [
+
+  ]
+}
+EOM
+      file 'users/y.json', { 'name' => 'y' }
+  end
+
+
+  # Integration DSL
 
   def when_the_repository(description, *args, &block)
     context "When the local repository #{description}", *args do
@@ -70,11 +209,15 @@ module IntegrationSupport
         dir = File.dirname(filename)
         FileUtils.mkdir_p(dir) unless dir == '.'
         File.open(filename, 'w') do |file|
-          if contents.is_a? Hash
-            file.write(JSON.pretty_generate(contents))
-          else
-            file.write(contents)
-          end
+          raw = case contents
+                when Hash
+                  JSON.pretty_generate(contents)
+                when Array
+                  contents.join("\n")
+                else
+                  contents
+                end
+          file.write(raw)
         end
       end
 
@@ -124,5 +267,30 @@ module IntegrationSupport
 
       instance_eval(&block)
     end
+  end
+
+  # Versioned cookbooks
+
+  def with_versioned_cookbooks(_metadata = {}, &block)
+    _m = { :versioned_cookbooks => true }.merge(_metadata)
+    context 'with versioned cookbooks', _m do
+      before(:each) { Chef::Config[:versioned_cookbooks] = true }
+      after(:each)  { Chef::Config[:versioned_cookbooks] = false }
+      instance_eval(&block)
+    end
+  end
+
+  def without_versioned_cookbooks(_metadata = {}, &block)
+    _m = { :versioned_cookbooks => false }.merge(_metadata)
+    context 'with versioned cookbooks', _m do
+      # Just make sure this goes back to default
+      before(:each) { Chef::Config[:versioned_cookbooks] = false }
+      instance_eval(&block)
+    end
+  end
+
+  def with_all_types_of_repository_layouts(&block)
+    without_versioned_cookbooks(&block)
+    with_versioned_cookbooks(&block)
   end
 end

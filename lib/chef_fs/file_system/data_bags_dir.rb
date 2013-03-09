@@ -33,7 +33,7 @@ module ChefFS
 
       def children
         begin
-          @children ||= rest.get_rest(api_path).keys.sort.map do |entry|
+          @children ||= chef_collection.keys.sort.map do |entry|
             DataBagDir.new(entry, self, true)
           end
         rescue Net::HTTPServerException
@@ -43,6 +43,10 @@ module ChefFS
             raise
           end
         end
+      end
+
+      def chef_collection
+        rest.get_rest(api_path)
       end
 
       def can_have_child?(name, is_dir)
