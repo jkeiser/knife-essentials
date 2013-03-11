@@ -116,6 +116,70 @@ work.  Use +--tree+ parameter to show this in a tree structure.  Use +--remote+
 to perform this operation against the data on the server rather than the local
 Chef repository.
 
+= CONFIGURATION
+
+There are several variables you can set in your +knife.rb+ file to alter the
+behavior of knife-essentials
+
+== chef_repo_path
+
+    chef_repo_path PATH|[PATH1, PATH2, ...]
+
+This is the path to the top of your chef repository.  Multiple paths are
+supported.  If you do not specify this, it defaults to +cookbook_path/..+ (for
+historical reasons, many knife.rb files contain +cookbook_path+.)
+
+If you specify this or +cookbook_path+, it is not necessary to specify the other paths (+client_path+,
++data_bag_path+, etc.).  They will be assumed to be under the chef_repo_path(s).
+
+== *_path
+
+    client_path PATH|[PATH1, PATH2, ...]
+    cookbook_path PATH|[PATH1, PATH2, ...]
+    data_bag_path PATH|[PATH1, PATH2, ...]
+    environment_path PATH|[PATH1, PATH2, ...]
+    node_path PATH|[PATH1, PATH2, ...]
+    role_path PATH|[PATH1, PATH2, ...]
+    user_path PATH|[PATH1, PATH2, ...]
+
+The local path where client json files, cookbook directories, etc. are stored.
+Each supports multiple paths, in which case all files/subdirectories from each
+path are merged into one virtual path (i.e. when you +knife list cookbooks+ it
+will show you a list including all cookbooks from all cookbook_paths).
+
+You generally do NOT need to specify these.  If you do not specify an _path
+variable, it is set to chef_repo_path/clients|cookbooks|data_bags|environments|nodes|roles|users.
+Each of these supports multiple paths.  If multiple paths are supported, and a
+new object is downloaded (say, a new cookbook), the object is downloaded into
+the *first* path in the list.  Updated objects stay where they are.
+
+== versioned_cookbooks
+
+    versioned_cookbooks true
+
+This option, when set to +true+, will cause knife-essentials to work with
+multiple versions of cookbooks.  In this case, your /cookbooks directory will
+have cookbook directory names of the form: +apache2-1.0.0+, +apache2-1.0.1+,
++mysql-1.1.2+, etc.  A full download of /cookbooks will download all versions,
+And a diff of a specific version will diff exactly that version and no other.
+
+This is super handy, especially combined with repo_mode "everything," as it will
+allow you to back up or restore a full copy of your Chef server.
+
+== repo_mode
+
+    repo_mode "everything"
+
+By default, knife-essentials only maps "cookbooks," "data_bags," environments," and "roles."  If you specify repo_mode "everything", it will map *everything* on the server,
+including users, clients and nodes.
+
+The author is not particularly happy about the necessity for this, and will try
+to get rid of it as soon as a way is found to avoid violating the Principle of
+Least Surprise.  The reason things are split this way is that most people don't
+store users, clients and nodes in source control.  +knife deps+ fares very
+poorly due to the way things are; but +knife diff+ gets surprising if it shows
+nodes, which aren't usually in your repo.
+
 == NOTE ABOUT WILDCARDS
 
 knife-essentials supports wildcards internally, and will use them to sift through objects
