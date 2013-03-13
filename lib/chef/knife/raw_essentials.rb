@@ -1,10 +1,12 @@
 require 'json'
 require 'chef_fs/data_handler/data_handler_base'
+require 'chef_fs/file_system/base_fs_object'
 
 class Chef
   class Knife
     remove_const(:Raw) if const_defined?(:Raw) && Raw.name == 'Chef::Knife::Raw' # override Chef's version
     class Raw < Chef::Knife
+      ChefFS = ::ChefFS
       banner "knife raw REQUEST_PATH"
 
       option :method,
@@ -42,7 +44,7 @@ class Chef
         end
         chef_rest = Chef::REST.new(Chef::Config[:chef_server_url])
         begin
-          output ChefFS::FileSystem::BaseFSObject.api_request(chef_rest, config[:method].to_sym, chef_rest.create_url(name_args[0]), {}, data)
+          output ::ChefFS::FileSystem::BaseFSObject.api_request(chef_rest, config[:method].to_sym, chef_rest.create_url(name_args[0]), {}, data)
         rescue Net::HTTPServerException => e
           ui.error "Server responded with error #{e.response.code} \"#{e.response.message}\""
           ui.error "Error Body: #{e.response.body}" if e.response.body && e.response.body != ''
