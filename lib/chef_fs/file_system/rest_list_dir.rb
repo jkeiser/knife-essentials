@@ -51,7 +51,7 @@ module ChefFS
           if $!.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new(self, $!)
           else
-            raise ChefFS::FileSystem::OperationFailedError.new(:children, self, e)
+            raise ChefFS::FileSystem::OperationFailedError.new(:children, self, e), "HTTP error retrieving children: #{e}"
           end
         end
       end
