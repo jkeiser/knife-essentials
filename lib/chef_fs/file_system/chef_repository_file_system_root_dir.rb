@@ -26,6 +26,7 @@ require 'chef_fs/data_handler/environment_data_handler'
 require 'chef_fs/data_handler/node_data_handler'
 require 'chef_fs/data_handler/role_data_handler'
 require 'chef_fs/data_handler/user_data_handler'
+require 'chef_fs/data_handler/group_data_handler'
 
 module ChefFS
   module FileSystem
@@ -89,6 +90,8 @@ module ChefFS
               ChefFS::DataHandler::RoleDataHandler.new
             when 'users'
               ChefFS::DataHandler::UserDataHandler.new
+            when 'groups'
+              ChefFS::DataHandler::GroupDataHandler.new
             else
               raise "Unknown top level path #{name}"
             end

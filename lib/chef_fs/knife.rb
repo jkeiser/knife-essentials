@@ -27,7 +27,7 @@ module ChefFS
     def self.common_options
       option :repo_mode,
         :long => '--repo-mode MODE',
-        :description => "Specifies the local repository layout.  Values: default or everything"
+        :description => "Specifies the local repository layout.  Values: default, everything, hosted_everything"
 
       option :chef_repo_path,
         :long => '--chef-repo-path PATH',
@@ -39,7 +39,7 @@ module ChefFS
       Chef::Config[:repo_mode] = config[:repo_mode] if config[:repo_mode]
 
       # --chef-repo-path overrides all other paths
-      path_variables = %w(client_path cookbook_path data_bag_path environment_path node_path role_path user_path)
+      path_variables = %w(client_path cookbook_path data_bag_path environment_path group_path node_path role_path user_path)
       if config[:chef_repo_path]
         Chef::Config[:chef_repo_path] = config[:chef_repo_path]
         path_variables.each do |variable_name|
@@ -79,7 +79,7 @@ module ChefFS
     end
 
     def chef_fs
-      @chef_fs ||= ChefFS::FileSystem::ChefServerRootDir.new("remote", Chef::Config, Chef::Config[:repo_mode])
+      @chef_fs ||= ChefFS::FileSystem::ChefServerRootDir.new("remote", Chef::Config)
     end
 
     def object_paths
@@ -90,8 +90,11 @@ module ChefFS
         end
 
         result = {}
-        if Chef::Config[:repo_mode] == 'everything'
+        case Chef::Config[:repo_mode]
+        when 'everything'
           object_names = %w(clients cookbooks data_bags environments nodes roles users)
+        when 'hosted_everything'
+          object_names = %w(clients cookbooks data_bags environments groups nodes roles)
         else
           object_names = %w(cookbooks data_bags environments roles)
         end

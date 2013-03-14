@@ -45,6 +45,10 @@ module ChefFS
         "#{parent.api_path}/#{api_child_name}"
       end
 
+      def org
+        parent.org
+      end
+
       def environment
         parent.environment
       end
