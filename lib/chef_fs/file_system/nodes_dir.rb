@@ -31,7 +31,7 @@ module ChefFS
       # Identical to RestListDir.children, except supports environments
       def children
         begin
-          @children ||= rest.get_rest(env_api_path).keys.sort.map do |key|
+          @children ||= ChefFS::RawRequest.raw_json(rest, env_api_path).keys.sort.map do |key|
             _make_child_entry("#{key}.json", true)
           end
         rescue Net::HTTPServerException => e

@@ -78,6 +78,10 @@ module ChefFS
       end
 
       def read
+        Chef::JSONCompat.to_json_pretty(_read_hash)
+      end
+
+      def _read_hash
         begin
           json = ChefFS::RawRequest.raw_request(rest, api_path)
         rescue Net::HTTPServerException => e
@@ -88,20 +92,12 @@ module ChefFS
           end
         end
         # Minimize the value (get rid of defaults) so the results don't look terrible
-        Chef::JSONCompat.to_json_pretty(minimize_value(JSON.parse(json, :create_additions => false)))
+        minimize_value(JSON.parse(json, :create_additions => false))
       end
 
       def chef_object
-        begin
-          # REST will inflate the Chef object using json_class
-          rest.get_rest(api_path)
-        rescue Net::HTTPServerException => e
-          if $!.response.code == "404"
-            raise ChefFS::FileSystem::NotFoundError.new(self, $!)
-          else
-            raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e), "HTTP error reading: #{e}"
-          end
-        end
+        # REST will inflate the Chef object using json_class
+        data_handler.json_class.json_create(read)
       end
 
       def minimize_value(value)
@@ -118,7 +114,7 @@ module ChefFS
 
         # Grab this value
         begin
-          value = chef_object.to_hash
+          value = _read_hash
         rescue ChefFS::FileSystem::NotFoundError
           return [ false, :none, other_value_json ]
         end
