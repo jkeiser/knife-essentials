@@ -44,13 +44,10 @@ class Chef
         error = false
         begin
           patterns.each do |pattern|
-            found_match = ChefFS::CommandLine.diff_print(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1, output_mode, proc { |entry| format_path(entry) }, config[:diff_filter] ) do |diff|
+            found_error = ChefFS::CommandLine.diff_print(pattern, chef_fs, local_fs, config[:recurse] ? nil : 1, output_mode, proc { |entry| format_path(entry) }, config[:diff_filter], ui ) do |diff|
               stdout.print diff
             end
-            if !found_match
-              ui.error "#{pattern}: No such file or directory on remote or local"
-              error = true
-            end
+            error = true if found_error
           end
         rescue ChefFS::FileSystem::OperationFailedError => e
           ui.error "Failed on #{format_path(e.entry)} in #{e.operation}: #{e.message}"
