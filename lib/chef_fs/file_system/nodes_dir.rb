@@ -28,9 +28,19 @@ module ChefFS
         super("nodes", parent, nil, ChefFS::DataHandler::NodeDataHandler.new)
       end
 
-      # Override to respond to environment
-      def chef_collection
-        rest.get_rest(env_api_path)
+      # Identical to RestListDir.children, except supports environments
+      def children
+        begin
+          @children ||= rest.get_rest(env_api_path).keys.sort.map do |key|
+            _make_child_entry("#{key}.json", true)
+          end
+        rescue Net::HTTPServerException => e
+          if $!.response.code == "404"
+            raise ChefFS::FileSystem::NotFoundError.new(self, $!)
+          else
+            raise ChefFS::FileSystem::OperationFailedError.new(:children, self, e), "HTTP error retrieving children: #{e}"
+          end
+        end
       end
 
       def env_api_path
