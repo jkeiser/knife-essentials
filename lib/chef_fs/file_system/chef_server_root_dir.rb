@@ -27,6 +27,7 @@ require 'chef_fs/data_handler/client_data_handler'
 require 'chef_fs/data_handler/role_data_handler'
 require 'chef_fs/data_handler/user_data_handler'
 require 'chef_fs/data_handler/group_data_handler'
+require 'chef_fs/data_handler/container_data_handler'
 
 module ChefFS
   module FileSystem
@@ -88,6 +89,7 @@ module ChefFS
           elsif repo_mode == 'hosted_everything'
             result += [
               RestListDir.new("clients", self, nil, ChefFS::DataHandler::ClientDataHandler.new),
+              RestListDir.new("containers", self, nil, ChefFS::DataHandler::ContainerDataHandler.new),
               RestListDir.new("groups", self, nil, ChefFS::DataHandler::GroupDataHandler.new),
               NodesDir.new(self)
             ]
