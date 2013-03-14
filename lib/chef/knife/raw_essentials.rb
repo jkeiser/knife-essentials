@@ -1,6 +1,6 @@
 require 'json'
 require 'chef_fs/data_handler/data_handler_base'
-require 'chef_fs/file_system/base_fs_object'
+require 'chef_fs/raw_request'
 
 class Chef
   class Knife
@@ -44,7 +44,7 @@ class Chef
         end
         chef_rest = Chef::REST.new(Chef::Config[:chef_server_url])
         begin
-          output ::ChefFS::FileSystem::BaseFSObject.api_request(chef_rest, config[:method].to_sym, chef_rest.create_url(name_args[0]), {}, data)
+          output ChefFS::RawRequest.api_request(chef_rest, config[:method].to_sym, chef_rest.create_url(name_args[0]), {}, data)
         rescue Net::HTTPServerException => e
           ui.error "Server responded with error #{e.response.code} \"#{e.response.message}\""
           ui.error "Error Body: #{e.response.body}" if e.response.body && e.response.body != ''
