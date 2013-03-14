@@ -99,7 +99,7 @@ module ChefFS
           if $!.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new(self, $!)
           else
-            raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e)
+            raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e), "HTTP error reading: #{e}"
           end
         end
       end
@@ -166,7 +166,7 @@ module ChefFS
           if e.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new(self, e)
           else
-            raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e)
+            raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "HTTP error writing: #{e}"
           end
         end
       end
