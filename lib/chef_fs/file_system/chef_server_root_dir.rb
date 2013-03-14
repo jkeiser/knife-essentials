@@ -16,6 +16,7 @@
 # limitations under the License.
 #
 
+require 'chef_fs/file_system/acls_dir'
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbooks_dir'
@@ -88,6 +89,7 @@ module ChefFS
             ]
           elsif repo_mode == 'hosted_everything'
             result += [
+              AclsDir.new(self),
               RestListDir.new("clients", self, nil, ChefFS::DataHandler::ClientDataHandler.new),
               RestListDir.new("containers", self, nil, ChefFS::DataHandler::ContainerDataHandler.new),
               RestListDir.new("groups", self, nil, ChefFS::DataHandler::GroupDataHandler.new),
