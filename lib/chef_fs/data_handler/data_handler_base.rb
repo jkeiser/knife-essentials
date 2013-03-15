@@ -38,6 +38,10 @@ module ChefFS
         result
       end
 
+      def normalize_for_put(object, entry)
+        normalize(object, entry)
+      end
+
       def normalize_run_list(run_list)
         run_list.map{|item|
           case item.to_s
