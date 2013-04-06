@@ -4,7 +4,7 @@ require 'chef_fs/file_system/not_found_error'
 
 class Chef
   class Knife
-    remove_const(:Xargs) if const_defined?(:Xargs) && Show.name == 'Chef::Knife::Xargs' # override Chef's version
+    remove_const(:Xargs) if const_defined?(:Xargs) && Xargs.name == 'Chef::Knife::Xargs' # override Chef's version
     class Xargs < ::ChefFS::Knife
       ChefFS = ::ChefFS
       banner "knife xargs [COMMAND]"
@@ -63,6 +63,11 @@ class Chef
       option :verbose_commands,
         :short => '-t',
         :description => "Print command to be run on the command line"
+
+      option :null_separator,
+        :short => '-0',
+        :boolean => true,
+        :description => "Use the NULL character (\0) as a separator, instead of whitespace"
 
       def run
         error = false
@@ -136,8 +141,11 @@ class Chef
       def get_patterns
         if config[:patterns]
           [ config[:patterns] ].flatten
+        elsif config[:null_separator]
+          stdin.binmode
+          stdin.read.split("\000")
         else
-          stdin.lines.map { |line| line.chomp }
+          stdin.read.split(/\s+/)
         end
       end
 
