@@ -23,10 +23,15 @@ module ChefFS
         response_body = chef_rest.decompress_body(response)
 
         if response.kind_of?(Net::HTTPSuccess)
-            response_body
+          response_body
         elsif redirect_location = redirected_to(response)
-          raise "Redirected to #{create_url(redirect_location)}"
-          follow_redirect {api_request(:GET, create_url(redirect_location))}
+          if [:GET, :HEAD].include?(method)
+            chef_rest.follow_redirect do
+              api_request(chef_rest, method, chef_rest.create_url(redirect_location))
+            end
+          else
+            raise Exceptions::InvalidRedirect, "#{method} request was redirected from #{url} to #{redirect_location}. Only GET and HEAD support redirects."
+          end
         else
           # have to decompress the body before making an exception for it. But the body could be nil.
           response.body.replace(chef_rest.decompress_body(response)) if response.body.respond_to?(:replace)
@@ -56,7 +61,6 @@ module ChefFS
       return nil  if response.kind_of?(Net::HTTPNotModified)
       response['location']
     end
-
 
     def self.build_headers(chef_rest, method, url, headers={}, json_body=false, raw=false)
       #        headers                 = @default_headers.merge(headers)
