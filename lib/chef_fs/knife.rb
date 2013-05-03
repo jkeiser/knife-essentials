@@ -20,6 +20,7 @@ require 'chef_fs/file_system/chef_server_root_dir'
 require 'chef_fs/file_system/chef_repository_file_system_root_dir'
 require 'chef_fs/file_pattern'
 require 'chef_fs/path_utils'
+require 'chef_fs/parallelizer'
 require 'chef/config'
 
 module ChefFS
@@ -32,11 +33,16 @@ module ChefFS
       option :chef_repo_path,
         :long => '--chef-repo-path PATH',
         :description => 'Overrides the location of chef repo. Default is specified by chef_repo_path in the config'
+
+      option :concurrency,
+        :long => '--concurrency THREADS',
+        :description => 'Maximum number of simultaneous requests to send (default: 10)'
     end
 
     def configure_chef
       super
       Chef::Config[:repo_mode] = config[:repo_mode] if config[:repo_mode]
+      Chef::Config[:concurrency] = config[:concurrency].to_i if config[:concurrency]
 
       # --chef-repo-path overrides all other paths
       path_variables = %w(acl_path client_path cookbook_path container_path data_bag_path environment_path group_path node_path role_path user_path)
@@ -85,6 +91,8 @@ module ChefFS
           end
         end
       end
+
+      ChefFS::Parallelizer.threads = (Chef::Config[:concurrency] || 10) - 1
     end
 
     def chef_fs
