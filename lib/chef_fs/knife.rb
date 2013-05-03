@@ -204,5 +204,8 @@ module ChefFS
       end
     end
 
+    def parallelize(inputs, options = {}, &block)
+      ChefFS::Parallelizer.parallelize(inputs, options, &block)
+    end
   end
 end

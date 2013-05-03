@@ -19,24 +19,31 @@ class Chef
       def run
         # Get the matches (recursively)
         error = false
-        pattern_args.each do |pattern|
-          ChefFS::FileSystem.list(config[:local] ? local_fs : chef_fs, pattern).each do |result|
-            if result.dir?
-              ui.error "#{format_path(result)}: is a directory" if pattern.exact_path
+        entry_values = parallelize(pattern_args, :flatten => true) do |pattern|
+          parallelize(ChefFS::FileSystem.list(config[:local] ? local_fs : chef_fs, pattern)) do |entry|
+            if entry.dir?
+              ui.error "#{format_path(entry)}: is a directory" if pattern.exact_path
               error = true
+              nil
             else
               begin
-                value = result.read
-                output "#{format_path(result)}:"
-                output(format_for_display(value))
+                [entry, entry.read]
               rescue ChefFS::FileSystem::OperationNotAllowedError => e
                 ui.error "#{format_path(e.entry)}: #{e.reason}."
                 error = true
+                nil
               rescue ChefFS::FileSystem::NotFoundError => e
                 ui.error "#{format_path(e.entry)}: No such file or directory"
                 error = true
+                nil
               end
             end
+          end
+        end
+        entry_values.each do |entry, value|
+          if entry
+            output "#{format_path(entry)}:"
+            output(format_for_display(value))
           end
         end
         if error
