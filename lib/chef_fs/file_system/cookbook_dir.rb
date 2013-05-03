@@ -150,7 +150,7 @@ module ChefFS
           return [ !exists?, nil, nil ]
         end
         are_same = true
-        ChefFS::CommandLine::diff_entries(self, other, nil, :name_only) do |type, old_entry, new_entry|
+        ChefFS::CommandLine::diff_entries(self, other, nil, :name_only).each do |type, old_entry, new_entry|
           if [ :directory_to_file, :file_to_directory, :deleted, :added, :modified ].include?(type)
             are_same = false
           end
