@@ -38,7 +38,7 @@ class Chef
         error = false
         if config[:remote_only]
           pattern_args.each do |pattern|
-            ChefFS::FileSystem.list(chef_fs, pattern) do |result|
+            ChefFS::FileSystem.list(chef_fs, pattern).each do |result|
               if delete_result(result)
                 error = true
               end
@@ -46,7 +46,7 @@ class Chef
           end
         elsif config[:local_only]
           pattern_args.each do |pattern|
-            ChefFS::FileSystem.list(local_fs, pattern) do |result|
+            ChefFS::FileSystem.list(local_fs, pattern).each do |result|
               if delete_result(result)
                 error = true
               end
@@ -54,7 +54,7 @@ class Chef
           end
         else
           pattern_args.each do |pattern|
-            ChefFS::FileSystem.list_pairs(pattern, chef_fs, local_fs) do |chef_result, local_result|
+            ChefFS::FileSystem.list_pairs(pattern, chef_fs, local_fs).each do |chef_result, local_result|
               if delete_result(chef_result, local_result)
                 error = true
               end
