@@ -73,7 +73,7 @@ module ChefFS
 
       # Default to getting *everything* from the server.
       if !Chef::Config[:repo_mode]
-        if Chef::Config[:chef_server_url] =~ /^[^\/]+\/+organizations\//
+        if Chef::Config[:chef_server_url] =~ /\/+organizations\/.+/
           Chef::Config[:repo_mode] = 'hosted_everything'
         else
           Chef::Config[:repo_mode] = 'everything'
