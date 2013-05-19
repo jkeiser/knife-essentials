@@ -92,7 +92,6 @@ module ChefFS
           elsif repo_mode != 'static'
             result += [
               RestListDir.new("clients", self, nil, ChefFS::DataHandler::ClientDataHandler.new),
-              RestListDir.new("containers", self, nil, ChefFS::DataHandler::ContainerDataHandler.new),
               NodesDir.new(self),
               RestListDir.new("users", self, nil, ChefFS::DataHandler::UserDataHandler.new)
             ]
