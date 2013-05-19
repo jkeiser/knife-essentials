@@ -50,7 +50,9 @@ class Chef
 
         error = false
         pattern_args.each do |pattern|
-          error ||= ChefFS::FileSystem.copy_to(pattern, local_fs, chef_fs, config[:recurse] ? nil : 1, config, ui, proc { |entry| format_path(entry) })
+          if ChefFS::FileSystem.copy_to(pattern, local_fs, chef_fs, config[:recurse] ? nil : 1, config, ui, proc { |entry| format_path(entry) })
+            error = true
+          end
         end
         if error
           exit 1
