@@ -45,10 +45,6 @@ module ChefFS
         @exists
       end
 
-      def identity_key
-        'id'
-      end
-
       def delete(recurse)
         if !recurse
           raise NotFoundError.new(self) if !exists?

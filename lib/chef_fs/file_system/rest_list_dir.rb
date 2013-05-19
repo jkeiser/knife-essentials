@@ -56,10 +56,6 @@ module ChefFS
         end
       end
 
-      def identity_key
-        'name'
-      end
-
       def create_child(name, file_contents)
         begin
           object = JSON.parse(file_contents, :create_additions => false)
@@ -70,12 +66,10 @@ module ChefFS
         result = _make_child_entry(name, true)
 
         if data_handler
-          object = data_handler.normalize(object, result)
-        end
-
-        base_name = name[0,name.length-5]
-        if object[identity_key] != base_name
-          raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self), "Name in #{path_for_printing}/#{name} must be '#{base_name}' (is '#{object[identity_key]}')"
+          object = data_handler.normalize_for_post(object, result)
+          data_handler.verify_integrity(object, result) do |error|
+            raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self), "Error creating '#{name}': #{error}"
+          end
         end
 
         begin

@@ -38,6 +38,10 @@ module ChefFS
         result
       end
 
+      def normalize_for_post(object, entry)
+        normalize(object, entry)
+      end
+
       def normalize_for_put(object, entry)
         normalize(object, entry)
       end
@@ -108,6 +112,13 @@ module ChefFS
           end
         end
         result
+      end
+
+      def verify_integrity(object, entry, &on_error)
+        base_name = remove_dot_json(entry.name)
+        if object['name'] != base_name
+          on_error.call("Name must be '#{base_name}' (is '#{object['name']}')")
+        end
       end
 
     end # class DataHandlerBase

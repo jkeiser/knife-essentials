@@ -141,10 +141,6 @@ module ChefFS
         parent.rest
       end
 
-      def identity_key
-        parent.identity_key
-      end
-
       def write(file_contents)
         begin
           #object = Chef::JSONCompat.from_json(file_contents).to_hash
@@ -155,11 +151,9 @@ module ChefFS
 
         if data_handler
           object = data_handler.normalize_for_put(object, self)
-        end
-
-        base_name = name[0,name.length-5] # Strip ".json"
-        if object[identity_key] != base_name
-          raise ChefFS::FileSystem::OperationFailedError.new(:write, self), "Name in #{path_for_printing}/#{name} must be '#{base_name}' (is '#{object['name']}')"
+          data_handler.verify_integrity(object, self) do |error|
+            raise ChefFS::FileSystem::OperationFailedError.new(:write, self), "#{error}"
+          end
         end
 
         begin

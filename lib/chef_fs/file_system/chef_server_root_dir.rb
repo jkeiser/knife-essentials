@@ -19,7 +19,6 @@
 require 'chef_fs/file_system/acls_dir'
 require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/rest_list_dir'
-require 'chef_fs/file_system/containers_dir'
 require 'chef_fs/file_system/cookbooks_dir'
 require 'chef_fs/file_system/data_bags_dir'
 require 'chef_fs/file_system/nodes_dir'
@@ -93,7 +92,7 @@ module ChefFS
           elsif repo_mode != 'static'
             result += [
               RestListDir.new("clients", self, nil, ChefFS::DataHandler::ClientDataHandler.new),
-              NodesDir.new(self),
+              RestListDir.new("containers", self, nil, ChefFS::DataHandler::ContainerDataHandler.new),
               RestListDir.new("users", self, nil, ChefFS::DataHandler::UserDataHandler.new)
             ]
           end
