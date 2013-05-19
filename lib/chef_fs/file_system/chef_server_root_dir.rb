@@ -85,7 +85,7 @@ module ChefFS
             result += [
               AclsDir.new(self),
               RestListDir.new("clients", self, nil, ChefFS::DataHandler::ClientDataHandler.new),
-              ContainersDir.new(self),
+              RestListDir.new("containers", self, nil, ChefFS::DataHandler::ContainerDataHandler.new),
               RestListDir.new("groups", self, nil, ChefFS::DataHandler::GroupDataHandler.new),
               NodesDir.new(self)
             ]
