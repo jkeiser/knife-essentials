@@ -19,8 +19,8 @@
 
 require 'tmpdir'
 require 'fileutils'
-require 'chef_zero/rspec'
 require 'chef/config'
+require 'chef_zero/rspec'
 require 'json'
 require 'support/knife_support'
 require 'support/spec_helper'
