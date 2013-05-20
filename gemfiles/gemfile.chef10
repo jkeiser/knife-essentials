@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gemspec
+gemspec :path => "../"
 
 # This is here instead of gemspec so that we can
 # override which Chef gem to use when we do testing
