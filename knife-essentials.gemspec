@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   # ... but, we can live with those options not working, if it means the plugin
   # can be included with apps that have restrictive Gemfile.locks.
   # s.add_dependency "mixlib-cli", ">= 1.2.2"
+  s.add_dependency 'chef'
   s.add_development_dependency "chef-zero"
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rake'
