@@ -82,7 +82,7 @@ module ChefFS
 
       def children
         @children ||=
-          Dir.entries(file_path).
+          Dir.entries(file_path).sort.
               select { |entry| entry != '.' && entry != '..' }.
               map { |entry| ChefRepositoryFileSystemEntry.new(entry, self) }.
               select { |entry| !ignored?(entry) }

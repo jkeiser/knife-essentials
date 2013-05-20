@@ -39,7 +39,7 @@ module ChefFS
 
       def children
         begin
-          @children ||= Dir.entries(file_path).select { |entry| entry != '.' && entry != '..' }.map { |entry| FileSystemEntry.new(entry, self) }
+          @children ||= Dir.entries(file_path).sort.select { |entry| entry != '.' && entry != '..' }.map { |entry| FileSystemEntry.new(entry, self) }
         rescue Errno::ENOENT
           raise ChefFS::FileSystem::NotFoundError.new(self, $!)
         end
