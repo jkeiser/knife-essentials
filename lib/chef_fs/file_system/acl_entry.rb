@@ -40,6 +40,8 @@ module ChefFS
         PERMISSIONS.each do |permission|
           begin
             rest.put_rest("#{api_path}/#{permission}", { permission => acls[permission] })
+          rescue Timeout::Error => e
+            raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "Timeout writing: #{e}"
           rescue Net::HTTPServerException => e
             if e.response.code == "404"
               raise ChefFS::FileSystem::NotFoundError.new(self, e)

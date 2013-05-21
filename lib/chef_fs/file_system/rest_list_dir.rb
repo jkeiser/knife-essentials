@@ -47,6 +47,8 @@ module ChefFS
           @children ||= ChefFS::RawRequest.raw_json(rest, api_path).keys.sort.map do |key|
             _make_child_entry("#{key}.json", true)
           end
+        rescue Timeout::Error => e
+          raise ChefFS::FileSystem::OperationFailedError.new(:children, self, e), "Timeout retrieving children: #{e}"
         rescue Net::HTTPServerException => e
           if $!.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new(self, $!)
@@ -74,6 +76,8 @@ module ChefFS
 
         begin
           rest.post_rest(api_path, object)
+        rescue Timeout::Error => e
+          raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self, e), "Timeout creating '#{name}': #{e}"
         rescue Net::HTTPServerException => e
           if e.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new(self, e)

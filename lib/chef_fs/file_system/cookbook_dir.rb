@@ -125,9 +125,13 @@ module ChefFS
         if recurse
           begin
             rest.delete_rest(api_path)
+          rescue Timeout::Error => e
+            raise ChefFS::FileSystem::OperationFailedError.new(:delete, self, e), "Timeout deleting: #{e}"
           rescue Net::HTTPServerException
             if $!.response.code == "404"
               raise ChefFS::FileSystem::NotFoundError.new(self, $!)
+            else
+              raise ChefFS::FileSystem::OperationFailedError.new(:delete, self, e), "HTTP error deleting: #{e}"
             end
           end
         else
@@ -189,22 +193,26 @@ module ChefFS
           ensure
             Chef::Config[:http_retry_count] = old_retry_count
           end
-        rescue Net::HTTPServerException
-          if $!.response.code == "404"
-            @could_not_get_chef_object = $!
+
+        rescue Timeout::Error => e
+          raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e), "Timeout reading: #{e}"
+
+        rescue Net::HTTPServerException => e
+          if e.response.code == "404"
+            @could_not_get_chef_object = e
             raise ChefFS::FileSystem::NotFoundError.new(self, @could_not_get_chef_object)
           else
-            raise
+            raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e), "HTTP error reading: #{e}"
           end
 
         # Chef bug http://tickets.opscode.com/browse/CHEF-3066 ... instead of 404 we get 500 right now.
         # Remove this when that bug is fixed.
-        rescue Net::HTTPFatalError
-          if $!.response.code == "500"
-            @could_not_get_chef_object = $!
+        rescue Net::HTTPFatalError => e
+          if e.response.code == "500"
+            @could_not_get_chef_object = e
             raise ChefFS::FileSystem::NotFoundError.new(self, @could_not_get_chef_object)
           else
-            raise
+            raise ChefFS::FileSystem::OperationFailedError.new(:read, self, e), "HTTP error reading: #{e}"
           end
         end
       end

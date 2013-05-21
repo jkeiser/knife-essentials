@@ -64,6 +64,8 @@ module ChefFS
 
       def upload_cookbook_from(other)
         Chef::Config[:versioned_cookbooks] ? upload_versioned_cookbook(other) : upload_unversioned_cookbook(other)
+      rescue Timeout::Error => e
+        raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "Timeout writing: #{e}"
       rescue Net::HTTPServerException => e
         case e.response.code
         when "409"
@@ -71,7 +73,7 @@ module ChefFS
           Chef::Log.debug(e)
           raise Exceptions::CookbookFrozen
         else
-          raise
+          raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "HTTP error writing: #{e}"
         end
       end
 

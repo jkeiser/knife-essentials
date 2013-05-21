@@ -90,6 +90,7 @@ module ChefFS
           else
             yield "Only in #{format_path.call(new_entry.parent)}: #{new_entry.name}\n"
           end
+
         when :modified
           next if diff_filter && diff_filter !~ /M/
           if output_mode == :name_only
@@ -101,6 +102,7 @@ module ChefFS
             result << diff_text(old_path, new_path, old_value, new_value)
             yield result
           end
+
         when :both_nonexistent
         when :added_cannot_upload
         when :deleted_cannot_download
@@ -230,23 +232,6 @@ module ChefFS
       end
     rescue ChefFS::FileSystem::FileSystemError => e
       return [ [ :error, old_entry, new_entry, nil, nil, e ] ]
-    end
-
-    class Differ
-      def initialize(old_entry, new_entry, recurse_depth, get_content)
-        @old_entry = old_entry
-        @new_entry = new_entry
-        @recurse_depth = recurse_depth
-        @get_content = get_content
-      end
-
-      attr_reader :old_entry
-      attr_reader :new_entry
-      attr_reader :recurse_depth
-      attr_reader :get_content
-
-      def each
-      end
     end
 
     private
