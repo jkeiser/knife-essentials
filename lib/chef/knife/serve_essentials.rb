@@ -41,7 +41,7 @@ class Chef
 
       def run
         server_options = {}
-        server_options[:data_store] = ChefFSDataStore.new(config[:remote] ? chef_fs : local_fs)
+        server_options[:data_store] = ChefFSDataStore.new(proc { config[:remote] ? create_chef_fs : create_local_fs })
         server_options[:log_level] = Chef::Log.level
         server_options[:host] = config[:host] if config[:host]
         server_options[:port] = config[:port] ? config[:port].to_i : 4000
@@ -56,7 +56,9 @@ class Chef
           @memory_store = ChefZero::DataStore::MemoryStore.new
         end
 
-        attr_reader :chef_fs
+        def chef_fs
+          @chef_fs.call
+        end
 
         MEMORY_PATHS = %w(sandboxes file_store)
 
@@ -371,7 +373,7 @@ class Chef
         end
 
         def get_dir(path, create=false)
-          result = Chef::FileSystem.resolve_path(chef_fs, path.join('/'))
+          result = ChefFS::FileSystem.resolve_path(chef_fs, path.join('/'))
           if result.exists?
             result
           elsif create
