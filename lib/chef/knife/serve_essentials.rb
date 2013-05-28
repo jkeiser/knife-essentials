@@ -320,7 +320,7 @@ class Chef
         end
 
         def to_zero_path(entry)
-          path = entry.path.split('/')
+          path = entry.path.split('/')[1..-1]
           if path[0] == 'data'
             path = path.dup
             path[0] = 'data_bags'
