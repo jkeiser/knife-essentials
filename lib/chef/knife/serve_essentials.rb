@@ -12,8 +12,8 @@ require 'chef_zero/data_store/data_not_found_error'
 
 class Chef
   class Knife
-    remove_const(:Zero) if const_defined?(:Zero) && Zero.name == 'Chef::Knife::Zero' # override Chef's version
-    class Zero < ::ChefFS::Knife
+    remove_const(:Serve) if const_defined?(:Serve) && Serve.name == 'Chef::Knife::Serve' # override Chef's version
+    class Serve < ::ChefFS::Knife
       ChefFS = ::ChefFS
       banner "knife show [PATTERN1 ... PATTERNn]"
 
