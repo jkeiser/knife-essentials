@@ -327,6 +327,7 @@ class Chef
             if path.length >= 3
               path[2] = path[2][0..-6]
             end
+
           elsif path[0] == 'cookbooks'
             if Chef::Config.versioned_cookbooks
               # cookbooks/name-version/... -> cookbooks/name/version/...
@@ -338,9 +339,10 @@ class Chef
               if path.length >= 2
                 # cookbooks/name/... -> cookbooks/name/version/...
                 version = get_single_cookbook_version(path)
-                path = path[0..1] + version + path[2..-1]
+                path = path[0..1] + [version] + path[2..-1]
               end
             end
+
           elsif path.length == 2 && path[0] != 'cookbooks'
             path = path.dup
             path[1] = path[1][0..-6]
@@ -353,7 +355,7 @@ class Chef
         end
 
         def path_always_exists?(path)
-          return path.length == 1 && %w(clients cookbooks data_bags environments nodes roles users).include?(path[0])
+          return path.length == 1 && %w(clients cookbooks data environments nodes roles users).include?(path[0])
         end
 
         def with_entry(path)
