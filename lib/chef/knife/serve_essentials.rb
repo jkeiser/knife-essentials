@@ -209,7 +209,7 @@ class Chef
           else
             with_entry(path) do |entry|
               begin
-                entry.children.map { |c| to_leaf_name(c) }.sort
+                entry.children.map { |c| zero_filename(c) }.sort
               rescue ChefFS::FileSystem::NotFoundError
                 # /cookbooks, /data, etc. never return 404
                 if path_always_exists?(path)
@@ -226,7 +226,7 @@ class Chef
           if is_memory_store(path)
             @memory_store.exists?(path)
           else
-            path_always_exists?(path) || ChefFS::FileSystem.resolve_path(chef_fs, path_to_chef_fs(path)).exists?
+            path_always_exists?(path) || ChefFS::FileSystem.resolve_path(chef_fs, to_chef_fs_path(path)).exists?
           end
         end
 
@@ -236,7 +236,7 @@ class Chef
           elsif path[0] == 'cookbooks' && path.length == 2
             list([ path[0] ]).include?(path[1])
           else
-            ChefFS::FileSystem.resolve_path(chef_fs, path_to_chef_fs(path)).exists?
+            ChefFS::FileSystem.resolve_path(chef_fs, to_chef_fs_path(path)).exists?
           end
         end
 
@@ -279,15 +279,15 @@ class Chef
           [name,version]
         end
 
-        def path_to_chef_fs(path)
-          _path_to_chef_fs(path).join('/')
+        def to_chef_fs_path(path)
+          _to_chef_fs_path(path).join('/')
         end
 
         def chef_fs_filename(path)
-          _path_to_chef_fs(path)[-1]
+          _to_chef_fs_path(path)[-1]
         end
 
-        def _path_to_chef_fs(path)
+        def _to_chef_fs_path(path)
           if path[0] == 'data'
             path = path.dup
             path[0] = 'data_bags'
@@ -351,7 +351,7 @@ class Chef
           path
         end
 
-        def to_leaf_name(entry)
+        def zero_filename(entry)
           to_zero_path(entry)[-1]
         end
 
@@ -361,7 +361,7 @@ class Chef
 
         def with_entry(path)
           begin
-            yield ChefFS::FileSystem.resolve_path(chef_fs, path_to_chef_fs(path))
+            yield ChefFS::FileSystem.resolve_path(chef_fs, to_chef_fs_path(path))
           rescue ChefFS::FileSystem::NotFoundError => e
             raise ChefZero::DataStore::DataNotFoundError.new(to_zero_path(e.entry), e)
           end
@@ -369,7 +369,7 @@ class Chef
 
         def with_dir(path)
           begin
-            yield get_dir(_path_to_chef_fs(path), true)
+            yield get_dir(_to_chef_fs_path(path), true)
           rescue ChefFS::FileSystem::NotFoundError => e
             raise ChefZero::DataStore::DataNotFoundError.new(to_zero_path(e.entry), e)
           end
