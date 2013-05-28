@@ -135,7 +135,7 @@ module ChefFS
     #       puts message
     #     end
     #
-    def self.copy_to(pattern, src_root, dest_root, recurse_depth, options, ui, format_path)
+    def self.copy_to(pattern, src_root, dest_root, recurse_depth, options, ui = nil, format_path = nil)
       found_result = false
       error = false
       parallel_do(list_pairs(pattern, src_root, dest_root)) do |src, dest|
@@ -145,7 +145,7 @@ module ChefFS
         error ||= child_error
       end
       if !found_result && pattern.exact_path
-        ui.error "#{pattern}: No such file or directory on remote or local"
+        ui.error "#{pattern}: No such file or directory on remote or local" if ui
         error = true
       end
       error
@@ -282,13 +282,13 @@ module ChefFS
             # If we would not have uploaded it, we will not purge it.
             if src_entry.parent.can_have_child?(dest_entry.name, dest_entry.dir?)
               if options[:dry_run]
-                ui.output "Would delete #{dest_path}"
+                ui.output "Would delete #{dest_path}" if ui
               else
                 dest_entry.delete(true)
-                ui.output "Deleted extra entry #{dest_path} (purge is on)"
+                ui.output "Deleted extra entry #{dest_path} (purge is on)" if ui
               end
             else
-              Chef::Log.info("Not deleting extra entry #{dest_path} (purge is off)")
+              Chef::Log.info("Not deleting extra entry #{dest_path} (purge is off)") if ui
             end
           end
 
@@ -297,21 +297,21 @@ module ChefFS
             # If the entry can do a copy directly from filesystem, do that.
             if new_dest_parent.respond_to?(:create_child_from)
               if options[:dry_run]
-                ui.output "Would create #{dest_path}"
+                ui.output "Would create #{dest_path}" if ui
               else
                 new_dest_parent.create_child_from(src_entry)
-                ui.output "Created #{dest_path}"
+                ui.output "Created #{dest_path}" if ui
               end
               return
             end
 
             if src_entry.dir?
               if options[:dry_run]
-                ui.output "Would create #{dest_path}"
+                ui.output "Would create #{dest_path}" if ui
                 new_dest_dir = new_dest_parent.child(src_entry.name)
               else
                 new_dest_dir = new_dest_parent.create_child(src_entry.name, nil)
-                ui.output "Created #{dest_path}"
+                ui.output "Created #{dest_path}" if ui
               end
               # Directory creation is recursive.
               if recurse_depth != 0
@@ -323,10 +323,10 @@ module ChefFS
               end
             else
               if options[:dry_run]
-                ui.output "Would create #{dest_path}"
+                ui.output "Would create #{dest_path}" if ui
               else
                 new_dest_parent.create_child(src_entry.name, src_entry.read)
-                ui.output "Created #{dest_path}"
+                ui.output "Created #{dest_path}" if ui
               end
             end
           end
@@ -338,10 +338,10 @@ module ChefFS
           if dest_entry.respond_to?(:copy_from)
             if options[:force] || compare(src_entry, dest_entry)[0] == false
               if options[:dry_run]
-                ui.output "Would update #{dest_path}"
+                ui.output "Would update #{dest_path}" if ui
               else
                 dest_entry.copy_from(src_entry)
-                ui.output "Updated #{dest_path}"
+                ui.output "Updated #{dest_path}" if ui
               end
             end
             return
@@ -359,12 +359,12 @@ module ChefFS
               end
             else
               # If they are different types.
-              ui.error("File #{src_path} is a directory while file #{dest_path} is a regular file\n")
+              ui.error("File #{src_path} is a directory while file #{dest_path} is a regular file\n") if ui
               return
             end
           else
             if dest_entry.dir?
-              ui.error("File #{src_path} is a directory while file #{dest_path} is a regular file\n")
+              ui.error("File #{src_path} is a directory while file #{dest_path} is a regular file\n") if ui
               return
             else
 
@@ -380,23 +380,23 @@ module ChefFS
               end
               if should_copy
                 if options[:dry_run]
-                  ui.output "Would update #{dest_path}"
+                  ui.output "Would update #{dest_path}" if ui
                 else
                   src_value = src_entry.read if src_value.nil?
                   dest_entry.write(src_value)
-                  ui.output "Updated #{dest_path}"
+                  ui.output "Updated #{dest_path}" if ui
                 end
               end
             end
           end
         end
       rescue DefaultEnvironmentCannotBeModifiedError => e
-        ui.warn "#{format_path.call(e.entry)} #{e.reason}."
+        ui.warn "#{format_path.call(e.entry)} #{e.reason}." if ui
       rescue OperationFailedError => e
-        ui.error "#{format_path.call(e.entry)} failed to #{e.operation}: #{e.message}"
+        ui.error "#{format_path.call(e.entry)} failed to #{e.operation}: #{e.message}" if ui
         error = true
       rescue OperationNotAllowedError => e
-        ui.error "#{format_path.call(e.entry)} #{e.reason}."
+        ui.error "#{format_path.call(e.entry)} #{e.reason}." if ui
         error = true
       end
       error
