@@ -322,9 +322,9 @@ class Chef
 
         def to_zero_path(entry)
           path = entry.path.split('/')[1..-1]
-          if path[0] == 'data'
+          if path[0] == 'data_bags'
             path = path.dup
-            path[0] = 'data_bags'
+            path[0] = 'data'
             if path.length >= 3
               path[2] = path[2][0..-6]
             end
