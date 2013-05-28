@@ -63,7 +63,7 @@ class Chef
         MEMORY_PATHS = %w(sandboxes file_store)
 
         def create_dir(path, name, *options)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.create_dir(path, name, *options)
           else
             with_dir(path) do |parent|
@@ -73,7 +73,7 @@ class Chef
         end
 
         def create(path, name, data, *options)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.create(path, name, data, *options)
 
           elsif path[0] == 'cookbooks' && path.length == 2
@@ -91,7 +91,7 @@ class Chef
         end
 
         def get(path, request=nil)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.get(path)
 
           elsif path[0] == 'file_store' && path[1] == 'repo'
@@ -133,7 +133,7 @@ class Chef
         end
 
         def set(path, data, *options)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.set(path, data, *options)
           else
             if !data.is_a?(String)
@@ -152,7 +152,7 @@ class Chef
         end
 
         def delete(path)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.delete(path)
           else
             with_entry(path) do |entry|
@@ -166,7 +166,7 @@ class Chef
         end
 
         def delete_dir(path, *options)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.delete_dir(path, *options)
           else
             with_entry(path) do |entry|
@@ -176,7 +176,7 @@ class Chef
         end
 
         def list(path)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.list(path)
 
           elsif path[0] == 'cookbooks' && path.length == 1
@@ -223,7 +223,7 @@ class Chef
         end
 
         def exists?(path)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.exists?(path)
           else
             path_always_exists?(path) || ChefFS::FileSystem.resolve_path(chef_fs, to_chef_fs_path(path)).exists?
@@ -231,7 +231,7 @@ class Chef
         end
 
         def exists_dir?(path)
-          if is_memory_store(path)
+          if use_memory_store?(path)
             @memory_store.exists_dir?(path)
           elsif path[0] == 'cookbooks' && path.length == 2
             list([ path[0] ]).include?(path[1])
@@ -242,8 +242,8 @@ class Chef
 
         private
 
-        def is_memory_store(path)
-          return path[0] == 'sandboxes' || path[0] == 'file_store' && path[1] == 'checksums'
+        def use_memory_store?(path)
+          return path[0] == 'sandboxes' || path[0] == 'file_store' && path[1] == 'checksums' || path == [ 'environments', '_default' ]
         end
 
         def write_cookbook(path, data, *options)
