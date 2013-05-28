@@ -24,9 +24,30 @@ class Chef
         :boolean => true,
         :description => "Proxy the remote server instead of the local filesystem"
 
+      option :host,
+        :short => '-H',
+        :long => '--host=HOST',
+        :description => "Host to bind to (default: 127.0.0.1)"
+
+      option :port,
+        :short => '-p',
+        :long => '--port=PORT',
+        :description => "Port to listen on (default: 4000)"
+
+      option :generate_real_keys,
+        :long => '--[no-]generate-keys',
+        :boolean => true,
+        :description => "Whether to generate actual keys or fake it (faster).  Default: false."
+
       def run
-        data_store = ChefFSDataStore.new(config[:remote] ? chef_fs : local_fs)
-        ChefZero::Server.new(:data_store => data_store, :log_level => Chef::Log.level).start(:publish => true)
+        server_options = {}
+        server_options[:data_store] = ChefFSDataStore.new(config[:remote] ? chef_fs : local_fs)
+        server_options[:log_level] = Chef::Log.level
+        server_options[:host] = config[:host] if config[:host]
+        server_options[:port] = config[:port] ? config[:port].to_i : 4000
+        server_options[:generate_real_keys] = config[:generate_real_keys] if config[:generate_real_keys]
+
+        ChefZero::Server.new(server_options).start(:publish => true)
       end
 
       class ChefFSDataStore
