@@ -79,6 +79,10 @@ class EssentialsRepoTranslator
       :chef_path => nil
     },
     {
+      :essentials_path => 'gemfiles',
+      :chef_path => nil
+    },
+    {
       :essentials_path => /^[^\/]+$/,
       :chef_path => nil
     }
@@ -93,16 +97,18 @@ class EssentialsRepoTranslator
         # We're being told to skip some lines ... make sure we're skipping what we think we're skipping
         if skip_lines
           expected = skip_lines.shift
-          raise "Unexpected line #{line}" if line !~ /^\s*#{Regexp.escape(expected)}\s*$/
+          raise "Unexpected line #{line}\nExpected #{expected}" if line !~ /^\s*#{Regexp.escape(expected)}\s*$/
           skip_lines = nil if skip_lines.size == 0
           next
         end
 
         # Handle a block that exists for compatibility
         if line =~ /^(\s*)# Chef 11 changes this API(\s*$)/
+          next
+        end
+        if line =~ /^(\s*)if uploader.respond_to?\(:upload_cookbook\)(\s*$)/
           line = "#{$1}uploader.upload_cookbooks#{$2}"
           skip_lines = [
-            'if uploader.respond_to?(:upload_cookbook)',
             'uploader.upload_cookbook',
             'else',
             'uploader.upload_cookbooks',
@@ -283,7 +289,7 @@ def error_ok(commit, file)
   return false
 end
 
-chef_repo = GitRepo.new(Pathname.new(File.join(File.dirname(__FILE__), "..", "..", "chef")).cleanpath)
+chef_repo = GitRepo.new(Pathname.new(File.join(File.dirname(__FILE__), "..", "..", "..", "opscode", "chef")).cleanpath)
 essentials_repo = GitRepo.new(Pathname.new(File.join(File.dirname(__FILE__), "..")).cleanpath)
 
 dry_run = ARGV.length > 0 && ARGV.include?('--dry-run')
@@ -301,6 +307,7 @@ Dir.mktmpdir('essentials_repo') do |pristine_essentials_repo_path|
 
   commits = pristine_essentials_repo.commits('chef_sync', 'master')
   commits.reverse.each do |commit|
+    # Skip commit that got overwritten the very next commit
     next if commit[:sha] == 'fa4cdbe9dbb1470dc5cb630a52be6b684a677802'
     puts ""
     puts "Applying #{commit[:sha]} (#{commit[:title].chomp}) ..."

@@ -15,7 +15,7 @@ def chef_repo_to_essentials(chef_dir, essentials_dir)
       chef_file_to_essentials(path, "#{essentials_dir}/spec/chef_fs/#{relative_path}")
     end
   end
-  # lib/chef/knife/[delete|diff|download|list|raw|show|upload].rb -> lib/chef/knife/*_essentials.rb
+  # lib/chef/knife/[delete|deps|diff|download|edit|list|raw|serve|show|upload|xargs].rb -> lib/chef/knife/*_essentials.rb
   %w(delete diff download list raw show upload).each do |knife_command|
     chef_file_to_essentials("#{chef_dir}/lib/chef/knife/#{knife_command}.rb", "#{essentials_dir}/lib/chef/knife/#{knife_command}_essentials.rb", true)
   end
