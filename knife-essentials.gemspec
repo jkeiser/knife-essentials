@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   # can be included with apps that have restrictive Gemfile.locks.
   # s.add_dependency "mixlib-cli", ">= 1.2.2"
   s.add_dependency 'chef'
-  s.add_development_dependency 'chef-zero'
+  s.add_development_dependency 'chef-zero', '>= 1.2'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rdoc'
