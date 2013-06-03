@@ -75,6 +75,8 @@ module ChefFS
         else
           raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "HTTP error writing: #{e}"
         end
+      rescue Chef::Exceptions::CookbookFrozen => e
+        raise ChefFS::FileSystem::CookbookFrozenError.new(:write, self, e), "Cookbook #{other.name} is frozen"
       end
 
       # Knife currently does not understand versioned cookbooks
