@@ -19,6 +19,8 @@
 require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbook_dir'
 require 'chef_fs/raw_request'
+require 'chef_fs/file_system/operation_failed_error'
+require 'chef_fs/file_system/cookbook_frozen_error'
 
 require 'tmpdir'
 
@@ -69,9 +71,7 @@ module ChefFS
       rescue Net::HTTPServerException => e
         case e.response.code
         when "409"
-          ui.error "Version #{other_cookbook_version.version} of cookbook #{other_cookbook_version.name} is frozen. Use --force to override."
-          Chef::Log.debug(e)
-          raise Exceptions::CookbookFrozen
+          raise ChefFS::FileSystem::CookbookFrozenError.new(:write, self, e), "Cookbook #{other.name} is frozen"
         else
           raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "HTTP error writing: #{e}"
         end

@@ -81,6 +81,8 @@ module ChefFS
         rescue Net::HTTPServerException => e
           if e.response.code == "404"
             raise ChefFS::FileSystem::NotFoundError.new(self, e)
+          elsif $!.response.code == "409"
+            raise ChefFS::FileSystem::AlreadyExistsError.new(:create_child, self, e), "Failure creating '#{name}': #{path}/#{name} already exists"
           else
             raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self, e), "Failure creating '#{name}': #{e.message}"
           end

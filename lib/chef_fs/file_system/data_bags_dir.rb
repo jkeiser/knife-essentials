@@ -57,7 +57,9 @@ module ChefFS
         rescue Timeout::Error => e
           raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self, e), "Timeout creating child '#{name}': #{e}"
         rescue Net::HTTPServerException => e
-          if e.response.code != "409"
+          if e.response.code == "409"
+            raise ChefFS::FileSystem::AlreadyExistsError.new(:create_child, self, e), "Cannot create #{name} under #{path}: already exists"
+          else
             raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self, e), "HTTP error creating child '#{name}': #{e}"
           end
         end
