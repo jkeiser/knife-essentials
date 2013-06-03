@@ -60,12 +60,12 @@ module ChefFS
         end
       end
 
-      def create_child_from(other)
-        upload_cookbook_from(other)
+      def create_child_from(other, options = {})
+        upload_cookbook_from(other, options)
       end
 
-      def upload_cookbook_from(other)
-        Chef::Config[:versioned_cookbooks] ? upload_versioned_cookbook(other) : upload_unversioned_cookbook(other)
+      def upload_cookbook_from(other, options = {})
+        Chef::Config[:versioned_cookbooks] ? upload_versioned_cookbook(other, options) : upload_unversioned_cookbook(other, options)
       rescue Timeout::Error => e
         raise ChefFS::FileSystem::OperationFailedError.new(:write, self, e), "Timeout writing: #{e}"
       rescue Net::HTTPServerException => e
@@ -81,7 +81,7 @@ module ChefFS
       # Cookbook Version uploader also requires a lot of refactoring
       # to make this work. So instead, we make a temporary cookbook
       # symlinking back to real cookbook, and upload the proxy.
-      def upload_versioned_cookbook(other)
+      def upload_versioned_cookbook(other, options)
         cookbook_name = ChefFS::FileSystem::ChefRepositoryFileSystemEntry.canonical_cookbook_name(other.name)
 
         Dir.mktmpdir do |temp_cookbooks_path|
@@ -95,7 +95,7 @@ module ChefFS
           proxy_loader.load_cookbooks
 
           # Instantiate a new uploader based on the proxy loader
-          uploader = Chef::CookbookUploader.new(proxy_loader.cookbook_version, proxy_cookbook_path, :rest => rest)
+          uploader = Chef::CookbookUploader.new(proxy_loader.cookbook_version, proxy_cookbook_path, :force => options[:force], :rest => rest)
 
           with_actual_cookbooks_dir(temp_cookbooks_path) do
             upload_cookbook!(uploader)
@@ -103,8 +103,8 @@ module ChefFS
         end
       end
 
-      def upload_unversioned_cookbook(other)
-        uploader = Chef::CookbookUploader.new(other.chef_object, other.parent.file_path, :rest => rest)
+      def upload_unversioned_cookbook(other, options)
+        uploader = Chef::CookbookUploader.new(other.chef_object, other.parent.file_path, :force => options[:force], :rest => rest)
 
         with_actual_cookbooks_dir(other.parent.file_path) do
           upload_cookbook!(uploader)
@@ -122,7 +122,7 @@ module ChefFS
       end
 
       # Chef 11 changes this API
-      def upload_cookbook!(uploader)
+      def upload_cookbook!(uploader, options = {})
         if uploader.respond_to?(:upload_cookbook)
           uploader.upload_cookbook
         else
