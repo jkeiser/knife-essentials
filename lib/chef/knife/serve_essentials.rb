@@ -8,10 +8,18 @@ class Chef
       banner "knife show [PATTERN1 ... PATTERNn]"
 
       deps do
-        require 'chef_zero/server'
-        require 'chef_zero/data_store/memory_store'
+        begin
+          require 'chef_zero/server'
+        rescue LoadError
+          STDERR.puts <<EOM
+ERROR: chef-zero must be installed to run "knife serve"!  To install:
 
-        # For ChefFSStore
+    gem install chef-zero
+
+EOM
+          exit(1)
+        end
+        require 'chef_zero/data_store/memory_store'
         require 'chef_fs/file_pattern'
         require 'chef_fs/file_system'
         require 'chef_fs/file_system/not_found_error'
