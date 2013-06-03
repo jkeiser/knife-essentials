@@ -1,6 +1,4 @@
 require 'chef_fs/knife'
-require 'chef_fs/file_system'
-require 'chef/run_list'
 
 class Chef
   class Knife
@@ -9,7 +7,10 @@ class Chef
       ChefFS = ::ChefFS
       banner "knife deps PATTERN1 [PATTERNn]"
 
-      common_options
+      deps do
+        require 'chef_fs/file_system'
+        require 'chef/run_list'
+      end
 
       option :recurse,
         :long => '--[no-]recurse',

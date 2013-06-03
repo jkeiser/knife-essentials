@@ -1,6 +1,4 @@
 require 'chef_fs/knife'
-require 'chef_fs/file_system'
-require 'chef_fs/file_system/not_found_error'
 
 class Chef
   class Knife
@@ -9,7 +7,10 @@ class Chef
       ChefFS = ::ChefFS
       banner "knife xargs [COMMAND]"
 
-      common_options
+      deps do
+        require 'chef_fs/file_system'
+        require 'chef_fs/file_system/not_found_error'
+      end
 
       # TODO modify to remote-only / local-only pattern (more like delete)
       option :local,

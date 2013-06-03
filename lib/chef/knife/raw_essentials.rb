@@ -1,6 +1,4 @@
-require 'json'
-require 'chef_fs/data_handler/data_handler_base'
-require 'chef_fs/raw_request'
+require 'chef/knife'
 
 class Chef
   class Knife
@@ -8,6 +6,12 @@ class Chef
     class Raw < Chef::Knife
       ChefFS = ::ChefFS
       banner "knife raw REQUEST_PATH"
+
+      deps do
+        require 'json'
+        require 'chef_fs/data_handler/data_handler_base'
+        require 'chef_fs/raw_request'
+      end
 
       option :method,
         :long => '--method METHOD',

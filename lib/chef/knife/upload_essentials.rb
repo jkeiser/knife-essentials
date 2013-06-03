@@ -1,5 +1,4 @@
 require 'chef_fs/knife'
-require 'chef_fs/command_line'
 
 class Chef
   class Knife
@@ -8,7 +7,9 @@ class Chef
       ChefFS = ::ChefFS
       banner "knife upload PATTERNS"
 
-      common_options
+      deps do
+        require 'chef_fs/command_line'
+      end
 
       option :recurse,
         :long => '--[no-]recurse',
