@@ -31,6 +31,10 @@ module ChefFS
       @memory_store = ChefZero::DataStore::MemoryStore.new
     end
 
+    def publish_description
+      "Reading and writing data to #{chef_fs.fs_description}"
+    end
+
     def chef_fs
       @chef_fs.call
     end

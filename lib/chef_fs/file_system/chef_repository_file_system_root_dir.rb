@@ -67,6 +67,23 @@ module ChefFS
         nil
       end
 
+      # Used to print out the filesystem
+      def fs_description
+        repo_path = File.dirname(child_paths['cookbooks'][0])
+        result = "repository at #{repo_path}\n"
+        if Chef::Config[:versioned_cookbooks]
+          result << "  - Multiple versions per cookbook\n"
+        else
+          result << "  - One version per cookbook\n"
+        end
+        child_paths.each_pair do |name, paths|
+          if paths.any? { |path| File.dirname(path) != repo_path }
+            result << "  - #{name} at #{paths.map { }.join('')}\n"
+          end
+        end
+        result
+      end
+
       private
 
       def make_child_entry(name)
