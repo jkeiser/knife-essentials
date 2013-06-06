@@ -72,13 +72,13 @@ module ChefFS
         repo_path = File.dirname(child_paths['cookbooks'][0])
         result = "repository at #{repo_path}\n"
         if Chef::Config[:versioned_cookbooks]
-          result << "  - Multiple versions per cookbook\n"
+          result << "  Multiple versions per cookbook\n"
         else
-          result << "  - One version per cookbook\n"
+          result << "  One version per cookbook\n"
         end
         child_paths.each_pair do |name, paths|
           if paths.any? { |path| File.dirname(path) != repo_path }
-            result << "  - #{name} at #{paths.map { }.join('')}\n"
+            result << "  #{name} at #{paths.join(', ')}\n"
           end
         end
         result
