@@ -97,7 +97,7 @@ module ChefFS
           ui.error("Attempt to use relative path '#{arg}' when current directory is outside the repository path")
           exit(1)
         end
-        ChefFS::FilePattern::relative_to(@chef_fs_config.base_path, arg)
+        ChefFS::FilePattern.relative_to(@chef_fs_config.base_path, arg)
       end
     end
 
