@@ -4,12 +4,12 @@ class Chef
   class Knife
     remove_const(:Raw) if const_defined?(:Raw) && Raw.name == 'Chef::Knife::Raw' # override Chef's version
     class Raw < Chef::Knife
-      ChefFS = ::ChefFS
       banner "knife raw REQUEST_PATH"
 
       deps do
         require 'json'
-        require 'chef_fs/data_handler/data_handler_base'
+        require 'chef/rest'
+        require 'chef/config'
         require 'chef_fs/raw_request'
       end
 
@@ -48,7 +48,7 @@ class Chef
         end
         chef_rest = Chef::REST.new(Chef::Config[:chef_server_url])
         begin
-          output ChefFS::RawRequest.api_request(chef_rest, config[:method].to_sym, chef_rest.create_url(name_args[0]), {}, data)
+          output ::ChefFS::RawRequest.api_request(chef_rest, config[:method].to_sym, chef_rest.create_url(name_args[0]), {}, data)
         rescue Timeout::Error => e
           ui.error "Server timeout"
           exit 1
