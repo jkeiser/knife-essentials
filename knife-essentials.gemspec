@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rdoc'
-  s.add_development_dependency 'thin'
+  s.add_development_dependency 'puma', '~> 1.6'
 
   s.require_path = 'lib'
   s.files = %w(LICENSE README.rdoc Rakefile) + Dir.glob("{lib,spec}/**/*")
