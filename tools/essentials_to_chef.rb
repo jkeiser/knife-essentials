@@ -27,6 +27,10 @@ class EssentialsRepoTranslator
       :chef_path => 'lib/chef/chef_fs.rb'
     },
     {
+      :essentials_path => 'lib/chef/knife/serve_essentials.rb',
+      :chef_path => nil, # Chef doesn't do "knife serve" yet
+    },
+    {
       :essentials_path => /^lib\/chef\/knife\/([^\/]+)_essentials.rb$/,
       :chef_path => 'lib/chef/knife/\1.rb',
     },
