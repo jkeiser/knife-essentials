@@ -13,7 +13,3 @@ matrix:
   include:
     - rvm: 2.0.0
       gemfile: Gemfile
-    - rvm: jruby-19mode
-      gemfile: Gemfile
-  allow_failures:
-    - rvm: jruby-19mode
