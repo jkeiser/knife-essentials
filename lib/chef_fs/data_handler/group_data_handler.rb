@@ -15,7 +15,7 @@ module ChefFS
         if entry.org
           defaults['orgname'] = entry.org
         end
-        result = super(group, defaults)
+        result = normalize_hash(group, defaults)
         if result['actors'] && result['actors'].sort.uniq == (result['users'] + result['clients']).sort.uniq
           result.delete('actors')
         end

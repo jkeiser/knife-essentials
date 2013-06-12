@@ -7,7 +7,7 @@ module ChefFS
       def normalize(cookbook, entry)
         version = entry.name
         name = entry.parent.name
-        result = super(cookbook, {
+        result = normalize_hash(cookbook, {
           'name' => "#{name}-#{version}",
           'version' => version,
           'cookbook_name' => name,
@@ -16,7 +16,7 @@ module ChefFS
           'frozen?' => false,
           'metadata' => {}
         })
-        result['metadata'] = super(result['metadata'], {
+        result['metadata'] = normalize_hash(result['metadata'], {
           'version' => version,
           'name' => name
         })

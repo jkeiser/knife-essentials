@@ -5,7 +5,7 @@ module ChefFS
     class AclDataHandler < DataHandlerBase
       def normalize(node, entry)
         # Normalize the order of the keys for easier reading
-        result = super(node, {
+        result = normalize_hash(node, {
           'create' => {},
           'read' => {},
           'update' => {},
@@ -13,7 +13,7 @@ module ChefFS
           'grant' => {}
           })
         result.keys.each do |key|
-          result[key] = super(result[key], { 'actors' => [], 'groups' => [] })
+          result[key] = normalize_hash(result[key], { 'actors' => [], 'groups' => [] })
           result[key]['actors'] = result[key]['actors'].sort
           result[key]['groups'] = result[key]['groups'].sort
         end

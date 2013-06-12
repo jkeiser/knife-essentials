@@ -4,7 +4,7 @@ module ChefFS
   module DataHandler
     class ContainerDataHandler < DataHandlerBase
       def normalize(container, entry)
-        super(container, {
+        normalize_hash(container, {
           'containername' => remove_dot_json(entry.name),
           'containerpath' => remove_dot_json(entry.name)
         })

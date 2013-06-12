@@ -309,7 +309,7 @@ Dir.mktmpdir('essentials_repo') do |pristine_essentials_repo_path|
     :dry_run => dry_run
   )
 
-  commits = pristine_essentials_repo.commits('chef_sync', 'master')
+  commits = pristine_essentials_repo.commits('a9716751c9a9aaf4c6730f31d6ac5feae41a503d', 'master')
   commits.reverse.each do |commit|
     # Skip commit that got overwritten the very next commit
     next if commit[:sha] == 'fa4cdbe9dbb1470dc5cb630a52be6b684a677802'
