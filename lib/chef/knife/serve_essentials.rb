@@ -22,11 +22,6 @@ EOM
         require 'chef_fs/chef_fs_data_store'
       end
 
-      option :remote,
-        :long => '--remote',
-        :boolean => true,
-        :description => "Proxy the remote server instead of the local filesystem"
-
       option :host,
         :short => '-H',
         :long => '--host=HOST',
@@ -44,7 +39,7 @@ EOM
 
       def run
         server_options = {}
-        server_options[:data_store] = ChefFS::ChefFSDataStore.new(proc { config[:remote] ? create_chef_fs : create_local_fs })
+        server_options[:data_store] = ChefFS::ChefFSDataStore.new(local_fs)
         server_options[:log_level] = Chef::Log.level
         server_options[:host] = config[:host] if config[:host]
         server_options[:port] = config[:port] ? config[:port].to_i : 4000

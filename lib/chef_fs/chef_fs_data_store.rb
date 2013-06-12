@@ -36,7 +36,7 @@ module ChefFS
     end
 
     def chef_fs
-      @chef_fs.call
+      @chef_fs
     end
 
     MEMORY_PATHS = %w(sandboxes file_store)
