@@ -24,11 +24,14 @@ class Chef
       def configure_chef
         super
 
+        if config[:config_file]
+          ui.output "Using config file #{config[:config_file]} ..."
+        end
+
         self.exit_code = 0
       end
 
       def run
-        self.exit_code = 0
         # Figure out the run list based on the passed-in objects
         run_list = get_run_list(name_args)
 
