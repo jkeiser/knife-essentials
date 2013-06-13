@@ -52,7 +52,9 @@ module ChefFS
         child_paths[name].each do |path|
           Dir.mkdir(path)
         end
-        make_child_entry(name)
+        child = make_child_entry(name)
+        @children << child
+        child
       end
 
       def json_class
