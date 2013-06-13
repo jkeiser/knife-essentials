@@ -17,41 +17,45 @@
 #
 
 require 'chef_fs/file_system/chef_repository_file_system_entry'
-require 'chef_fs/file_system/chef_repository_file_system_cookbook_dir'
-require 'chef/cookbook/chefignore'
+require 'chef_fs/file_system/chef_repository_file_system_cookbooks_dir'
 
 module ChefFS
   module FileSystem
-    class ChefRepositoryFileSystemCookbooksDir < ChefRepositoryFileSystemEntry
-      def initialize(name, parent, file_path)
+    class ChefRepositoryFileSystemCookbookEntry < ChefRepositoryFileSystemEntry
+      def initialize(name, parent, file_path = nil)
         super(name, parent, file_path)
-        begin
-          @chefignore = Chef::Cookbook::Chefignore.new(self.file_path)
-        rescue Errno::EISDIR
-        rescue Errno::EACCES
-          # Work around a bug in Chefignore when chefignore is a directory
-        end
       end
-
-      attr_reader :chefignore
 
       def children
         Dir.entries(file_path).sort.
             select { |child_name| can_have_child?(child_name, File.directory?(File.join(file_path, child_name))) }.
-            map { |child_name| ChefRepositoryFileSystemCookbookDir.new(child_name, self) }.
-            select do |entry|
-              # empty cookbooks and cookbook directories are ignored
-              if entry.children.size == 0
-                Chef::Log.warn("Cookbook '#{entry.name}' is empty or entirely chefignored at #{entry.path_for_printing}")
-                false
-              else
-                true
-              end
-            end
+            map { |child_name| ChefRepositoryFileSystemCookbookEntry.new(child_name, self) }.
+            select { |entry| !(entry.dir? && entry.children.size == 0) }
       end
 
       def can_have_child?(name, is_dir)
-        is_dir && !name.start_with?('.')
+        if is_dir
+          return name != '.' && name != '..'
+        end
+
+        # Check chefignore
+        ignorer = parent
+        begin
+          if ignorer.is_a?(ChefRepositoryFileSystemCookbooksDir)
+            # Grab the path from entry to child
+            path_to_child = name
+            child = self
+            while child.parent != ignorer
+              path_to_child = PathUtils.join(child.name, path_to_child)
+              child = child.parent
+            end
+            # Check whether that relative path is ignored
+            return !ignorer.chefignore || !ignorer.chefignore.ignored?(path_to_child)
+          end
+          ignorer = ignorer.parent
+        end while ignorer
+
+        true
       end
     end
   end

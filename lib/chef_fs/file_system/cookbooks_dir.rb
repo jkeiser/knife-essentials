@@ -21,6 +21,7 @@ require 'chef_fs/file_system/cookbook_dir'
 require 'chef_fs/raw_request'
 require 'chef_fs/file_system/operation_failed_error'
 require 'chef_fs/file_system/cookbook_frozen_error'
+require 'chef_fs/file_system/chef_repository_file_system_cookbook_dir'
 
 require 'tmpdir'
 
@@ -84,7 +85,7 @@ module ChefFS
       # to make this work. So instead, we make a temporary cookbook
       # symlinking back to real cookbook, and upload the proxy.
       def upload_versioned_cookbook(other, options)
-        cookbook_name = ChefFS::FileSystem::ChefRepositoryFileSystemEntry.canonical_cookbook_name(other.name)
+        cookbook_name = ChefFS::FileSystem::ChefRepositoryFileSystemCookbookDir.canonical_cookbook_name(other.name)
 
         Dir.mktmpdir do |temp_cookbooks_path|
           proxy_cookbook_path = "#{temp_cookbooks_path}/#{cookbook_name}"
