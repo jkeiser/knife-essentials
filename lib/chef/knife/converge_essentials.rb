@@ -33,7 +33,6 @@ EOM
         super
 
         if config[:config_file]
-          puts "config file #{config[:config_file]}"
           dot_chef = File.dirname(config[:config_file])
           if File.basename(dot_chef) == '.chef'
             # Override default locations to go in the .chef directory, since we are knife.
