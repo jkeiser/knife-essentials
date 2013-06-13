@@ -297,6 +297,7 @@ chef_repo = GitRepo.new(Pathname.new(File.join(File.dirname(__FILE__), "..", "..
 essentials_repo = GitRepo.new(Pathname.new(File.join(File.dirname(__FILE__), "..")).cleanpath)
 
 dry_run = ARGV.length > 0 && ARGV.include?('--dry-run')
+start_commit = ARGV[0] if ARGV.length > 0
 Dir.mktmpdir('essentials_repo') do |pristine_essentials_repo_path|
   system("git clone -l #{essentials_repo.path} #{pristine_essentials_repo_path}")
   pristine_essentials_repo = GitRepo.new(pristine_essentials_repo_path)
@@ -309,7 +310,7 @@ Dir.mktmpdir('essentials_repo') do |pristine_essentials_repo_path|
     :dry_run => dry_run
   )
 
-  commits = pristine_essentials_repo.commits('a9716751c9a9aaf4c6730f31d6ac5feae41a503d', 'master')
+  commits = pristine_essentials_repo.commits(start_commit || 'a9716751c9a9aaf4c6730f31d6ac5feae41a503d', 'master')
   commits.reverse.each do |commit|
     # Skip commit that got overwritten the very next commit
     next if commit[:sha] == 'fa4cdbe9dbb1470dc5cb630a52be6b684a677802'
