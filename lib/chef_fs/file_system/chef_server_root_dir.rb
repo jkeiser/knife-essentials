@@ -33,7 +33,7 @@ require 'chef_fs/data_handler/container_data_handler'
 module ChefFS
   module FileSystem
     class ChefServerRootDir < BaseFSDir
-      def initialize(root_name, chef_config)
+      def initialize(root_name, chef_config, options = {})
         super("", nil)
         @chef_server_url = chef_config[:chef_server_url]
         @chef_username = chef_config[:node_name]
@@ -41,6 +41,7 @@ module ChefFS
         @environment = chef_config[:environment]
         @repo_mode = chef_config[:repo_mode]
         @root_name = root_name
+        @cookbook_version = options[:cookbook_version] # Used in knife diff and download for server cookbook version
       end
 
       attr_reader :chef_server_url
@@ -48,6 +49,7 @@ module ChefFS
       attr_reader :chef_private_key
       attr_reader :environment
       attr_reader :repo_mode
+      attr_reader :cookbook_version
 
       def fs_description
         "Chef server at #{chef_server_url} (user #{chef_username}), repo_mode = #{repo_mode}"

@@ -24,11 +24,16 @@ module ChefFS
   # Helpers to take Chef::Config and create chef_fs and local_fs from it
   #
   class Config
-    def initialize(chef_config = Chef::Config, cwd = Dir.pwd)
+    def initialize(chef_config = Chef::Config, cwd = Dir.pwd, options = {})
       @chef_config = chef_config
       @cwd = cwd
+      @cookbook_version = options[:cookbook_version]
       configure_repo_paths
     end
+
+    attr_reader :chef_config
+    attr_reader :cwd
+    attr_reader :cookbook_version
 
     PATH_VARIABLES = %w(acl_path client_path cookbook_path container_path data_bag_path environment_path group_path node_path role_path user_path)
 
@@ -38,7 +43,7 @@ module ChefFS
 
     def create_chef_fs
       require 'chef_fs/file_system/chef_server_root_dir'
-      ChefFS::FileSystem::ChefServerRootDir.new("remote", @chef_config)
+      ChefFS::FileSystem::ChefServerRootDir.new("remote", @chef_config, :cookbook_version => @cookbook_version)
     end
 
     def local_fs
