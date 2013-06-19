@@ -87,12 +87,12 @@ class Chef
                   result << "role[#{entry.name}]"
 
                 else
-                  ui.error "arguments must be cookbooks, recipes or roles!  #{format_path{e.entry}} is not a cookbook, recipe or role."
+                  ui.error "arguments must be cookbooks, recipes or roles!  #{format_path(entry)} is not a cookbook, recipe or role."
                   self.exit_code = 1
                 end
               end
             rescue ChefFS::FileSystem::OperationFailedError => e
-              "#{format_path_with_root(e.entry)} #{e.reason}."
+              "#{format_path(e.entry)} #{e.reason}."
               self.exit_code = 1
             rescue ChefFS::FileSystem::NotFoundError => e
               ui.error "#{format_path(e.entry)}: No such file or directory"
