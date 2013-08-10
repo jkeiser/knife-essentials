@@ -53,7 +53,7 @@ module ChefFS
           Dir.mkdir(path)
         end
         child = make_child_entry(name)
-        @children << child
+        @children = nil
         child
       end
 

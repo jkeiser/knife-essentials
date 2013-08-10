@@ -63,6 +63,7 @@ module ChefFS
             raise ChefFS::FileSystem::OperationFailedError.new(:create_child, self, e), "HTTP error creating child '#{name}': #{e}"
           end
         end
+        @children = nil
         DataBagDir.new(name, self, true)
       end
     end

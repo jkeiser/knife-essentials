@@ -62,6 +62,7 @@ module ChefFS
       end
 
       def create_child_from(other, options = {})
+        @children = nil
         upload_cookbook_from(other, options)
       end
 

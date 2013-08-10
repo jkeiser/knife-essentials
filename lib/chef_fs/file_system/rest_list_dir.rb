@@ -88,6 +88,8 @@ module ChefFS
           end
         end
 
+        @children = nil
+
         result
       end
 
