@@ -20,6 +20,7 @@ require 'chef_fs/file_system/base_fs_dir'
 require 'chef_fs/file_system/chef_repository_file_system_entry'
 require 'chef_fs/file_system/chef_repository_file_system_cookbooks_dir'
 require 'chef_fs/file_system/chef_repository_file_system_data_bags_dir'
+require 'chef_fs/file_system/chef_repository_file_system_acls_dir'
 require 'chef_fs/file_system/multiplexed_dir'
 require 'chef_fs/data_handler/client_data_handler'
 require 'chef_fs/data_handler/environment_data_handler'
@@ -28,7 +29,6 @@ require 'chef_fs/data_handler/role_data_handler'
 require 'chef_fs/data_handler/user_data_handler'
 require 'chef_fs/data_handler/group_data_handler'
 require 'chef_fs/data_handler/container_data_handler'
-require 'chef_fs/data_handler/acl_data_handler'
 
 module ChefFS
   module FileSystem
@@ -91,6 +91,8 @@ module ChefFS
           dirs = paths.map { |path| ChefRepositoryFileSystemCookbooksDir.new(name, self, path) }
         elsif name == 'data_bags'
           dirs = paths.map { |path| ChefRepositoryFileSystemDataBagsDir.new(name, self, path) }
+        elsif name == 'acls'
+          dirs = paths.map { |path| ChefRepositoryFileSystemAclsDir.new(name, self, path) }
         else
           data_handler = case name
             when 'clients'
@@ -107,8 +109,6 @@ module ChefFS
               ChefFS::DataHandler::GroupDataHandler.new
             when 'containers'
               ChefFS::DataHandler::ContainerDataHandler.new
-            when 'acls'
-              ChefFS::DataHandler::AclDataHandler.new
             else
               raise "Unknown top level path #{name}"
             end
