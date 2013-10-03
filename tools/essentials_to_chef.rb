@@ -31,6 +31,10 @@ class EssentialsRepoTranslator
       :chef_path => nil, # Chef doesn't do "knife serve" yet
     },
     {
+      :essentials_path => 'lib/chef/knife/converge_essentials.rb',
+      :chef_path => nil, # Chef doesn't do "knife serve" yet
+    },
+    {
       :essentials_path => /^lib\/chef\/knife\/([^\/]+)_essentials.rb$/,
       :chef_path => 'lib/chef/knife/\1.rb',
     },
@@ -67,6 +71,10 @@ class EssentialsRepoTranslator
       :chef_path => 'spec/support/shared/unit'
     },
     {
+      :essentials_path => 'spec/data/null_config.rb',
+      :chef_path => 'spec/data/null_config.rb'
+    },
+    {
       :essentials_path => 'spec/support/spec_helper.rb',
       :chef_path => nil
     },
@@ -97,7 +105,35 @@ class EssentialsRepoTranslator
     File.open("#{essentials_repo}/#{essentials_relative}") do |essentials_file|
       in_class = false
       skip_lines = nil
+      first_line = true
       essentials_file.each_line do |line|
+        if first_line && line != "#\n"
+          if essentials_relative =~ /spec\/.*.rb$/
+            new_text << <<EOM
+#
+# Author:: John Keiser (<jkeiser@opscode.com>)
+# Copyright:: Copyright (c) 2013 Opscode, Inc.
+# License:: Apache License, Version 2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+EOM
+          end
+        end
+        if first_line
+          first_line = false
+        end
+
         # We're being told to skip some lines ... make sure we're skipping what we think we're skipping
         if skip_lines
           expected = skip_lines.shift
@@ -128,7 +164,7 @@ class EssentialsRepoTranslator
             in_class = false
             next
           end
-          line = "  #{line}" unless line == "\n"
+          line = "  #{line}" unless line == "\n" || line == "EOM\n"
         else
           if line =~ /^module\s*ChefFS\s*$/
             new_text << "class Chef\n"
@@ -288,8 +324,20 @@ def error_ok(commit, file)
     a30edcf035bc8bad6299f04b5b635850537273b8
     8038a91d99c0b49fe2eded353ab98ac7a145cca0
     9a683cb99d5c99b1e352c26a8a83027b666f3086
+    6d3f3b8bbf2da357dbe8e98b8edafab408485f04
+    45dc27d51fcf52442a38046441d5245863112a0e
+    95551de7ce529130c7914799013836110506d532
+    2c1de187874a5620231b76daf9f0c2bfdf7eba6f
+    aba5780b4e9770f74320d51d843945914f821783
+    6d3f3b8bbf2da357dbe8e98b8edafab408485f04
+    0666a0de94eed5a53451d857245920e67bb01498
   ).include?(commit[:sha])
-  return true if commit[:sha] == 'b66f16bf06538e2f2291bdb8778ecde9c96c8663' && file =~ /raw_essentials.rb/
+  ok_commit_files = {
+    'b66f16bf06538e2f2291bdb8778ecde9c96c8663' => /raw_essentials.rb/,
+    '80ee3ed96b2d15e7c4ba32a7d9317bff4419bb7d' => /integration_helper.rb/,
+    '113e5f330e72d4e63b48394add887e9665494713' => /null_config.rb/
+  }
+  return true if ok_commit_files[commit[:sha]] && file =~ ok_commit_files[commit[:sha]]
   return false
 end
 
@@ -310,10 +358,13 @@ Dir.mktmpdir('essentials_repo') do |pristine_essentials_repo_path|
     :dry_run => dry_run
   )
 
-  commits = pristine_essentials_repo.commits(start_commit || 'a9716751c9a9aaf4c6730f31d6ac5feae41a503d', 'master')
+  commits = pristine_essentials_repo.commits(start_commit || '003ac8d1372bd420a8146736988982bf8e9ac7e0', 'master')
   commits.reverse.each do |commit|
     # Skip commit that got overwritten the very next commit
     next if commit[:sha] == 'fa4cdbe9dbb1470dc5cb630a52be6b684a677802'
+    # Skip commits that just do whitespace or useless things
+    next if %w(113e5f330e72d4e63b48394add887e9665494713 113e5f330e72d4e63b48394add887e9665494713 0180c838068536ba04ce1c3a22e35ba62fd738da 843baf3148140bb7b9aa55c8b81b991ec77ae1df
+               6a094cc7308441ff47e3fcd57b49ecb8408d970b).include?(commit[:sha])
     puts ""
     puts "Applying #{commit[:sha]} (#{commit[:title].chomp}) ..."
     pristine_essentials_repo.git("checkout -q #{commit[:sha]}")
