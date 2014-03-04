@@ -1,5 +1,9 @@
 == Knife Essentials
 
+= MERGED TO CORE CHEF! =
+
+knife-essentials has been merged to Core Chef as of Chef 11 and active development is going on there (though bugfixes are still accepted here, they will need to get into chef too).
+
 = DESCRIPTION:
 
 knife-essentials provides a number of useful knife commands that allow you
