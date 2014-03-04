@@ -1,8 +1,8 @@
 == Knife Essentials
 
-= MERGED TO CORE CHEF! =
+= MERGED TO CORE CHEF!
 
-knife-essentials has been merged to Core Chef as of Chef 11 and active development is going on there (though bugfixes are still accepted here, they will need to get into chef too).
+knife-essentials has been merged to Core [Chef](https://github.com/opscode/chef) as of Chef 11 and active development is going on there (though bugfixes are still accepted here, they will need to get into chef too).
 
 = DESCRIPTION:
 
