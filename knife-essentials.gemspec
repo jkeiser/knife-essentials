@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = s.summary
   s.author = "John Keiser"
   s.email = "jkeiser@opscode.com"
-  s.homepage = "http://www.opscode.com"
+  s.homepage = "https://github.com/jkeiser/knife-essentials"
 
   # We need a more recent version of mixlib-cli in order to support --no- options.
   # ... but, we can live with those options not working, if it means the plugin
