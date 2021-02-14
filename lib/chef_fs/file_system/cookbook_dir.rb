@@ -16,10 +16,11 @@
 # limitations under the License.
 #
 
-require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbook_subdir'
+require 'chef_fs/file_system/rest_list_dir'
 require 'chef_fs/file_system/cookbook_file'
 require 'chef_fs/file_system/not_found_error'
+require 'chef_fs/command_line'
 require 'chef/cookbook_version'
 require 'chef/cookbook_uploader'
 
